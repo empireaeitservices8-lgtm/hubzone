@@ -17,9 +17,9 @@ const CONTACT_EMAIL = "hello@yourstore.com";
 // `color` is the hover colour of the big links in the menu (taken from the four brands)
 const NAV_LINKS = [
   { label: "Home", href: "/", color: "#2e7d32" },
-  { label: "Our Team", href: "/team", color: "#c2570c" },
+  { label: "About Us", href: "/about", color: "#c2570c" },
   { label: "Shop", href: "/shop", color: "#8a5a14" },
-  { label: "Contact", href: "/contact", color: "#0b78b8" },
+  { label: "Contact Us", href: "/contact", color: "#0b78b8" },
 ];
 
 const SOCIALS = [

@@ -13,7 +13,7 @@ const QUICK_LINKS = [
   { label: "Home", href: "/" },
   { label: "Shop", href: "/shop" },
   { label: "Brands", href: "/#brands" },
-  { label: "Contact", href: "/#contact" },
+  { label: "Contact", href: "/contact" },
 ];
 
 const INSTAGRAM_URL = "https://www.instagram.com/hub_zone_park?dlrf=N3k3bGRvYXp2bGJ0"; // TODO: replace with your handle
