@@ -29,7 +29,7 @@ const SLIDES: Slide[] = [
     eyebrow: "Ayurvedic Cosmetics",
     title: ["Ancient wisdom,", "for your skin."],
     text: "Plant-based care, made the traditional way.",
-    cta: { label: "Shop cosmetics", href: "/shop/cosmetics" },
+    cta: { label: "Shop cosmetics", href: "/shop" },
   },
   {
     image: "/kitchen.jpg",
@@ -37,7 +37,7 @@ const SLIDES: Slide[] = [
     eyebrow: "Kitchen Essentials",
     title: ["Built for", "every meal."],
     text: "Premium cookware that lasts for years.",
-    cta: { label: "Shop kitchen", href: "/shop/kitchen" },
+    cta: { label: "Shop kitchen", href: "/shop" },
   },
   {
     image: "/coffee_beans.jpg",
@@ -45,7 +45,7 @@ const SLIDES: Slide[] = [
     eyebrow: "Coffee Beans",
     title: ["Roasted dark.", "Brewed bold."],
     text: "Freshly roasted beans for a richer cup.",
-    cta: { label: "Shop coffee", href: "/shop/coffee" },
+    cta: { label: "Shop coffee", href: "/shop" },
   },
   {
     image: "/cleaning.jpg",
@@ -53,7 +53,7 @@ const SLIDES: Slide[] = [
     eyebrow: "Cleaning Chemicals",
     title: ["Spotless.", "Every surface."],
     text: "Professional-grade clean, effortless results.",
-    cta: { label: "Shop cleaning", href: "/shop/cleaning" },
+    cta: { label: "Shop cleaning", href: "/shop" },
   },
 ];
 
