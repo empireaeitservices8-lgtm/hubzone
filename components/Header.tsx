@@ -219,7 +219,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
             </Link>
 
             <Link
-              href="/signup"
+              href="/register"
               className={[
                 mono.className,
                 "hidden items-center gap-3 rounded-full px-6 py-3 text-[13px] uppercase transition-transform hover:scale-[1.03] active:scale-95 sm:inline-flex",
@@ -493,7 +493,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                 Login
               </Link>
               <Link
-                href="/signup"
+                href="/register"
                 onClick={close}
                 tabIndex={open ? 0 : -1}
                 className={`${mono.className} rounded-full bg-white px-6 py-3 text-[13px] uppercase text-neutral-900`}
