@@ -9,41 +9,34 @@ const BRANDS = [
   {
     id: "care", name: "HubCare", tag: "Ayurvedic hair & skin care",
     desc: "Herbal unisex products by Ayurvedic doctors, made with pure natural ingredients.",
-    logo: "/logos/hub_care.webp", tint: "#e3f2df", ink: "#2e7d32", color: "#4caf50", span: "lg:col-span-7",
+    logo: "/logos/hub_care.webp", tint: "#e3f2df", ink: "#2e7d32", color: "#4caf50",
   },
   {
     id: "cook", name: "HubCook", tag: "Healthy, easy cooking",
     desc: "Stainless steel non-stick cookware for gas, induction and oven, plus PP5 oven-safe containers.",
-    logo: "/logos/hub_cook.webp", tint: "#fde5cc", ink: "#c2570c", color: "#f08a24", span: "lg:col-span-5",
+    logo: "/logos/hub_cook.webp", tint: "#fde5cc", ink: "#c2570c", color: "#f08a24",
   },
   {
     id: "cof", name: "HubCof", tag: "100% pure Wayanad coffee",
     desc: "Zero chicory, no fillers. Just rich aroma and bold, authentic taste.",
-    logo: "/logos/hubcof.webp", tint: "#f4e6c8", ink: "#8a5a14", color: "#d4a24c", span: "lg:col-span-5",
+    logo: "/logos/hubcof.webp", tint: "#f4e6c8", ink: "#8a5a14", color: "#d4a24c",
   },
   {
     id: "wash", name: "HubWash", tag: "Fresh, clean, every wash",
     desc: "Complete home cleaning solutions that keep every corner spotless and hygienic.",
-    logo: "/logos/hubwash.webp", tint: "#d6edfb", ink: "#0b78b8", color: "#2fa8e8", span: "lg:col-span-7",
+    logo: "/logos/hubwash.webp", tint: "#d6edfb", ink: "#0b78b8", color: "#2fa8e8",
   },
 ];
+type Brand = (typeof BRANDS)[number];
 
 /* Fires once when the element scrolls into view */
-function useReveal<T extends HTMLElement>(threshold = 0.18) {
+function useReveal<T extends HTMLElement>(threshold = 0.2) {
   const ref = useRef<T>(null);
   const [shown, setShown] = useState(false);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const io = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting) {
-          setShown(true);
-          io.disconnect();
-        }
-      },
-      { threshold }
-    );
+    const io = new IntersectionObserver(([e]) => e.isIntersecting && (setShown(true), io.disconnect()), { threshold });
     io.observe(el);
     return () => io.disconnect();
   }, [threshold]);
@@ -56,90 +49,177 @@ const Arrow = () => (
   </svg>
 );
 
-/* ------------------------------ Brand card ------------------------------ */
-function BrandCard({ b, i }: { b: (typeof BRANDS)[number]; i: number }) {
-  const { ref, shown } = useReveal<HTMLDivElement>();
-  const d = (i % 2) * 140; // stagger within a row
+const Plus = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+);
+
+/* Round logo: floats, with a slowly turning dashed ring, tilts when active */
+function Logo({ b, i, active }: { b: Brand; i: number; active: boolean }) {
+  return (
+    <span className="hz-float relative block h-full w-full" style={{ animation: `hz-float 6s ease-in-out ${i * -1.5}s infinite` }}>
+      <span
+        aria-hidden="true"
+        className="hz-float absolute -inset-[8%] rounded-full border-2 border-dashed opacity-50"
+        style={{ borderColor: b.ink, animation: "hz-spin 40s linear infinite" }}
+      />
+      <span
+        className={`block h-full w-full rounded-full bg-white shadow-xl shadow-black/10 ring-[6px] transition-transform duration-700 ease-out group-hover:rotate-[8deg] ${active ? "rotate-[10deg]" : ""}`}
+        style={{ ["--tw-ring-color" as string]: b.tint }}
+      >
+        <Image src={b.logo} alt={`${b.name} logo`} width={400} height={400} className="h-full w-full rounded-full object-cover" />
+      </span>
+    </span>
+  );
+}
+
+function ShopButton({ b, focusable }: { b: Brand; focusable: boolean }) {
+  return (
+    <Link
+      href={`/shop?brand=${b.id}`}
+      tabIndex={focusable ? 0 : -1}
+      onClick={(e) => e.stopPropagation()}
+      className="group/btn inline-flex w-fit items-center gap-3 rounded-full bg-neutral-900 py-1.5 pl-5 pr-1.5 text-sm font-semibold text-white transition-transform hover:scale-[1.03] active:scale-95"
+    >
+      Shop {b.name}
+      <span className="grid h-8 w-8 place-items-center rounded-full bg-white" style={{ color: b.ink }}>
+        <span className="transition-transform duration-300 group-hover/btn:translate-x-0.5">
+          <Arrow />
+        </span>
+      </span>
+    </Link>
+  );
+}
+
+/* ------------------- Desktop: panels that stretch open ------------------- */
+function Panel({ b, i, open, onOpen, onToggle }: { b: Brand; i: number; open: boolean; onOpen: () => void; onToggle: () => void }) {
+  const LOGO_CLOSED = 96;
+  const LOGO_OPEN = 150;
+  const size = open ? LOGO_OPEN : LOGO_CLOSED;
 
   return (
-    <div
-      ref={ref}
-      className={`hz-rv ${b.span}`}
+    <article
+      onClick={() => !open && onOpen()}
+      className={`group relative isolate min-w-0 overflow-hidden rounded-[2.25rem] border-2 outline outline-1 outline-offset-4 transition-[flex-grow,background-color,box-shadow,outline-color] duration-700 ease-[cubic-bezier(.2,.8,.2,1)] ${open ? "flex-[3]" : "flex-1 cursor-pointer hover:bg-white"}`}
       style={{
-        opacity: shown ? 1 : 0,
-        transform: shown ? "none" : "translateY(56px) scale(0.96)",
-        transition: `opacity 800ms ease ${d}ms, transform 900ms cubic-bezier(.2,.8,.2,1) ${d}ms`,
+        borderColor: b.color,
+        outlineColor: open ? `${b.color}66` : "transparent",
+        background: open ? b.tint : "#fff",
+        boxShadow: open ? `0 28px 60px -28px ${b.color}` : "none",
       }}
     >
-      <article
-        className="group relative isolate flex h-full min-h-[340px] flex-col justify-between overflow-hidden rounded-[2rem] p-7 transition-[transform,box-shadow] duration-500 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-black/10 sm:min-h-[400px] sm:p-9"
-        style={{ background: b.tint }}
+      {/* big faint name behind everything */}
+      <span
+        aria-hidden="true"
+        className={`${display.className} pointer-events-none absolute -bottom-4 right-6 -z-10 select-none whitespace-nowrap text-[6.5rem] font-extrabold leading-none tracking-[-0.05em] transition-opacity duration-700 ${open ? "opacity-[0.06]" : "opacity-0"}`}
+        style={{ color: b.ink }}
       >
-        {/* big faint name behind everything */}
-        <span
-          aria-hidden="true"
-          className={`${display.className} pointer-events-none absolute right-5 top-2 -z-10 select-none whitespace-nowrap text-[clamp(4rem,9vw,7rem)] font-extrabold leading-none tracking-[-0.05em] opacity-[0.08] transition-all duration-700 group-hover:-translate-x-3 group-hover:opacity-[0.15]`}
-          style={{ color: b.ink }}
-        >
-          {b.name}
-        </span>
+        {b.name}
+      </span>
 
-        {/* logo: rolls in, floats gently, tilts on hover */}
-{/* logo: rolls in, floats gently, tilts on hover (kept fully inside the card) */}
-<div className="pointer-events-none absolute right-6 top-6 -z-10 aspect-square w-[34%] max-w-[280px] sm:bottom-9 sm:right-9 sm:top-auto sm:w-[40%]">          <div
-            className="hz-rv h-full w-full"
-            style={{
-              opacity: shown ? 1 : 0,
-              transform: shown ? "rotate(0deg) translate(0,0) scale(1)" : "rotate(-40deg) translate(35%,35%) scale(0.6)",
-              transition: `opacity 700ms ease ${d + 250}ms, transform 1300ms cubic-bezier(.2,.9,.25,1.15) ${d + 250}ms`,
+      {/* logo glides from centre (closed) to the right (open) */}
+      <div
+        className="pointer-events-none absolute top-1/2 -translate-y-1/2 transition-all duration-700 ease-[cubic-bezier(.2,.8,.2,1)]"
+        style={{ width: size, height: size, left: open ? `calc(100% - ${LOGO_OPEN}px - 32px)` : `calc(50% - ${LOGO_CLOSED / 2}px)` }}
+      >
+        <Logo b={b} i={i} active={open} />
+      </div>
+
+      <div className="relative flex h-full flex-col justify-between p-5 2xl:p-7">
+        <div className="flex items-start justify-between gap-3">
+          <h3 className={`${display.className} text-xl font-extrabold tracking-tight text-neutral-950 2xl:text-2xl`}>{b.name}</h3>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggle();
             }}
+            aria-expanded={open}
+            aria-label={`${open ? "Close" : "Open"} ${b.name}`}
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-full border-2 bg-white/60 transition-all duration-300 hover:scale-105 hover:bg-white"
+            style={{ color: b.ink, borderColor: b.color, transform: open ? "rotate(45deg)" : undefined }}
           >
-            <div className="hz-float relative h-full w-full" style={{ animation: `hz-float 6s ease-in-out ${i * -1.5}s infinite` }}>
-              {/* slowly turning dashed ring */}
-              <span
-                aria-hidden="true"
-                className="hz-float absolute -inset-[7%] rounded-full border-2 border-dashed opacity-40"
-                style={{ borderColor: b.ink, animation: "hz-spin 40s linear infinite" }}
-              />
-              <div className="h-full w-full rounded-full bg-white shadow-2xl shadow-black/15 ring-8 ring-white/70 transition-transform duration-700 ease-out group-hover:-translate-x-2 group-hover:-translate-y-2 group-hover:rotate-[10deg] group-hover:scale-105">
-                <Image src={b.logo} alt={`${b.name} logo`} width={640} height={640} className="h-full w-full rounded-full object-cover" />
+            <Plus />
+          </button>
+        </div>
+
+        <div className="min-w-0 max-w-[52%]">
+          <span className="mb-3 block h-1 rounded-full transition-all duration-500" style={{ background: b.color, width: open ? 64 : 32 }} />
+          <p className="text-sm font-semibold leading-snug text-neutral-900 2xl:text-base">{b.tag}</p>
+
+          <div className={`grid transition-[grid-template-rows] duration-500 ease-out ${open ? "grid-rows-[1fr] delay-200" : "grid-rows-[0fr]"}`}>
+            <div className="overflow-hidden">
+              <div className={`pt-2 transition-opacity duration-500 ${open ? "opacity-100 delay-300" : "opacity-0"}`}>
+                <p className="text-[15px] leading-snug text-neutral-700">{b.desc}</p>
+                <div className="mt-4">
+                  <ShopButton b={b} focusable={open} />
+                </div>
               </div>
             </div>
           </div>
         </div>
+      </div>
+    </article>
+  );
+}
 
-        <div className="max-w-[56%] sm:max-w-[52%]">
-          <span className="mb-4 block h-1 w-10 rounded-full transition-all duration-500 group-hover:w-20" style={{ background: b.color }} />
-          <h3 className={`${display.className} text-3xl font-extrabold tracking-tight text-neutral-950 sm:text-4xl`}>{b.name}</h3>
-          <p className="mt-2 font-medium text-neutral-800">{b.tag}</p>
-          <p className="mt-3 text-neutral-600">{b.desc}</p>
-        </div>
-
-        <Link
-          href={`/shop?brand=${b.id}`}
-          className="group/btn inline-flex w-fit items-center gap-3 rounded-full bg-neutral-900 py-1.5 pl-5 pr-1.5 text-sm font-semibold text-white transition-transform hover:scale-[1.03] active:scale-95"
+/* ------------------- Mobile / tablet: stacked, tap to open ------------------- */
+function Row({ b, i, open, onToggle }: { b: Brand; i: number; open: boolean; onToggle: () => void }) {
+  return (
+    <article
+      className="group overflow-hidden rounded-[2rem] border-2 transition-[background-color,box-shadow] duration-500"
+      style={{ borderColor: b.color, background: open ? b.tint : "#fff", boxShadow: open ? `0 20px 44px -24px ${b.color}` : "none" }}
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        aria-controls={`brand-${b.id}`}
+        className="flex w-full items-center gap-4 p-4 text-left"
+      >
+        <span className="block h-20 w-20 shrink-0">
+          <Logo b={b} i={i} active={open} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className={`${display.className} block text-2xl font-extrabold tracking-tight text-neutral-950`}>{b.name}</span>
+          <span className="mt-0.5 block text-sm font-medium leading-snug text-neutral-700">{b.tag}</span>
+        </span>
+        <span
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-2 bg-white/60 transition-transform duration-300"
+          style={{ color: b.ink, borderColor: b.color, transform: open ? "rotate(45deg)" : "none" }}
         >
-          Shop {b.name}
-          <span className="grid h-8 w-8 place-items-center overflow-hidden rounded-full bg-white transition-colors duration-300" style={{ color: b.ink }}>
-            <span className="transition-transform duration-300 group-hover/btn:translate-x-0.5">
-              <Arrow />
-            </span>
-          </span>
-        </Link>
-      </article>
-    </div>
+          <Plus />
+        </span>
+      </button>
+
+      <div id={`brand-${b.id}`} className={`grid transition-[grid-template-rows] duration-500 ease-out ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+        <div className="overflow-hidden">
+          <div className="px-4 pb-5 transition-opacity duration-500" style={{ opacity: open ? 1 : 0 }}>
+            <span className="mb-3 block h-1 w-12 rounded-full" style={{ background: b.color }} />
+            <p className="leading-relaxed text-neutral-700">{b.desc}</p>
+            <div className="mt-4">
+              <ShopButton b={b} focusable={open} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
   );
 }
 
 /* -------------------------------- Section -------------------------------- */
 export default function Brands() {
   const { ref, shown } = useReveal<HTMLDivElement>(0.3);
+  const grid = useReveal<HTMLDivElement>(0.15);
+  const [openId, setOpenId] = useState<string | null>("care");
   const words = "Meet the brands inside HubZone".split(" ");
+  const toggle = (id: string) => setOpenId((cur) => (cur === id ? null : id));
 
   return (
-    <section id="brands" className="bg-white px-5 py-20 sm:px-8 sm:py-28">
+    <section id="brands" className="bg-white px-5 py-12 sm:px-8 sm:py-16">
       <style>{`
-        @keyframes hz-float { 0%,100% { transform: translateY(0) rotate(0deg) } 50% { transform: translateY(-10px) rotate(2deg) } }
+        @keyframes hz-float { 0%,100% { transform: translateY(0) rotate(0deg) } 50% { transform: translateY(-8px) rotate(2deg) } }
         @keyframes hz-spin { to { transform: rotate(360deg) } }
         @media (prefers-reduced-motion: reduce) {
           .hz-rv { transition: none !important; opacity: 1 !important; transform: none !important }
@@ -149,8 +229,8 @@ export default function Brands() {
 
       <div className="mx-auto max-w-[1400px]">
         {/* Heading: words rise one after another */}
-        <div ref={ref} className="mb-8 flex flex-col justify-between gap-6 sm:mb-10 lg:flex-row lg:items-end">
-          <h2 className={`${display.className} max-w-2xl text-[clamp(2.2rem,5vw,4rem)] font-extrabold leading-[1.02] tracking-[-0.03em] text-neutral-950`}>
+        <div ref={ref} className="mb-6 flex flex-col justify-between gap-4 sm:mb-8 lg:flex-row lg:items-end">
+          <h2 className={`${display.className} max-w-2xl text-[clamp(2rem,4vw,3.2rem)] font-extrabold leading-[1.04] tracking-[-0.03em] text-neutral-950`}>
             {words.map((w, i) => (
               <span key={i} className="inline-block overflow-hidden pb-[0.12em] align-bottom">
                 <span
@@ -166,19 +246,19 @@ export default function Brands() {
             ))}
           </h2>
           <p
-            className="hz-rv max-w-md text-lg leading-relaxed text-neutral-600"
+            className="hz-rv max-w-sm text-lg leading-relaxed text-neutral-600"
             style={{
               opacity: shown ? 1 : 0,
               transform: shown ? "none" : "translateY(16px)",
               transition: "opacity 900ms ease 500ms, transform 900ms ease 500ms",
             }}
           >
-            Four everyday brands, each with its own focus and all backed by the same standard of quality.
+            Four everyday brands, one standard of quality. Tap a brand to learn more.
           </p>
         </div>
 
         {/* four-colour line that draws itself */}
-        <div aria-hidden="true" className="mb-10 flex h-[3px] gap-1 sm:mb-14">
+        <div aria-hidden="true" className="mb-8 flex h-[3px] gap-1">
           {BRANDS.map((b, i) => (
             <span
               key={b.id}
@@ -192,10 +272,28 @@ export default function Brands() {
           ))}
         </div>
 
-        <div className="grid gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-12">
-          {BRANDS.map((b, i) => (
-            <BrandCard key={b.id} b={b} i={i} />
-          ))}
+        <div
+          ref={grid.ref}
+          className="hz-rv"
+          style={{
+            opacity: grid.shown ? 1 : 0,
+            transform: grid.shown ? "none" : "translateY(40px)",
+            transition: "opacity 800ms ease, transform 900ms cubic-bezier(.2,.8,.2,1)",
+          }}
+        >
+          {/* Desktop */}
+          <div className="hidden h-[320px] gap-6 xl:flex 2xl:h-[340px]">
+            {BRANDS.map((b, i) => (
+              <Panel key={b.id} b={b} i={i} open={openId === b.id} onOpen={() => setOpenId(b.id)} onToggle={() => toggle(b.id)} />
+            ))}
+          </div>
+
+          {/* Mobile / tablet */}
+          <div className="grid gap-3 sm:grid-cols-2 sm:items-start sm:gap-4 xl:hidden">
+            {BRANDS.map((b, i) => (
+              <Row key={b.id} b={b} i={i} open={openId === b.id} onToggle={() => toggle(b.id)} />
+            ))}
+          </div>
         </div>
       </div>
     </section>

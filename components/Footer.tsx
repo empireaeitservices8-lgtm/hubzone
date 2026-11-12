@@ -45,6 +45,8 @@ const Arrow = () => (
   </svg>
 );
 
+const HEADING = "mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500 sm:mb-5";
+
 export default function Footer() {
   return (
     <footer id="contact" className="relative isolate overflow-hidden bg-neutral-950 text-neutral-300">
@@ -58,20 +60,20 @@ export default function Footer() {
       {/* giant faint wordmark */}
       <span
         aria-hidden="true"
-        className={`${display.className} pointer-events-none absolute -bottom-6 left-1/2 -z-10 -translate-x-1/2 select-none whitespace-nowrap text-[clamp(5rem,20vw,18rem)] font-extrabold leading-none tracking-[-0.05em] text-white opacity-[0.04]`}
+        className={`${display.className} pointer-events-none absolute -bottom-3 left-1/2 -z-10 -translate-x-1/2 select-none whitespace-nowrap text-[clamp(4.5rem,20vw,18rem)] font-extrabold leading-none tracking-[-0.05em] text-white opacity-[0.04] sm:-bottom-6`}
       >
         HubZone
       </span>
 
-      <div className="mx-auto max-w-[1400px] px-5 pb-8 pt-16 sm:px-8 sm:pt-20">
+      <div className="mx-auto max-w-[1400px] px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-12 sm:px-8 sm:pt-16 lg:pt-20">
         {/* CTA strip */}
-        <div className="mb-14 flex flex-col items-start justify-between gap-6 rounded-[2rem] bg-white/[0.06] p-7 ring-1 ring-white/10 backdrop-blur sm:p-10 lg:flex-row lg:items-center">
-          <h2 className={`${display.className} max-w-xl text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl`}>
+        <div className="mb-12 flex flex-col items-start justify-between gap-5 rounded-3xl bg-white/[0.06] p-6 ring-1 ring-white/10 backdrop-blur sm:mb-14 sm:gap-6 sm:rounded-[2rem] sm:p-8 md:flex-row md:items-center lg:p-10">
+          <h2 className={`${display.className} max-w-xl text-2xl font-extrabold leading-tight tracking-tight text-white sm:text-3xl lg:text-4xl`}>
             Quality for every corner of your everyday life.
           </h2>
           <Link
             href="/shop"
-            className="group inline-flex items-center gap-3 rounded-full bg-white py-1.5 pl-6 pr-1.5 text-sm font-semibold text-neutral-900 transition-transform hover:scale-[1.03] active:scale-95"
+            className="group inline-flex w-full items-center justify-between gap-3 rounded-full bg-white py-1.5 pl-6 pr-1.5 text-sm font-semibold text-neutral-900 transition-transform hover:scale-[1.03] active:scale-95 sm:w-auto sm:justify-start md:shrink-0"
           >
             Start shopping
             <span className="grid h-9 w-9 place-items-center rounded-full bg-neutral-900 text-white transition-transform duration-300 group-hover:translate-x-0.5">
@@ -80,17 +82,18 @@ export default function Footer() {
           </Link>
         </div>
 
-        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-12">
+        {/* Mobile: logo / links+brands side by side / address.  md: 4 cols.  lg: 12 cols. */}
+        <div className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-4 md:gap-x-10 lg:grid-cols-12">
           {/* Logo + blurb + social */}
-          <div className="lg:col-span-4">
+          <div className="col-span-2 md:col-span-4 lg:col-span-4">
             <Link href="/" className="inline-flex items-center gap-3">
-              <span className="grid h-14 w-14 place-items-center overflow-hidden rounded-full bg-white ring-4 ring-white/10">
+              <span className="grid h-12 w-12 place-items-center overflow-hidden rounded-full bg-white ring-4 ring-white/10 sm:h-14 sm:w-14">
                 {/* TODO: point to your HubZone logo */}
                 <Image src="/logo.png" alt="HubZone logo" width={112} height={112} className="h-full w-full object-cover" />
               </span>
               <span className={`${display.className} text-2xl font-extrabold tracking-tight text-white`}>HubZone</span>
             </Link>
-            <p className="mt-5 max-w-sm leading-relaxed text-neutral-400">
+            <p className="mt-4 max-w-sm leading-relaxed text-neutral-400 sm:mt-5 md:max-w-xl lg:max-w-sm">
               Four everyday brands for care, cooking, coffee and cleaning, all backed by the same standard of quality.
             </p>
             <a
@@ -98,7 +101,7 @@ export default function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="HubZone on Instagram"
-              className="group mt-6 inline-flex items-center gap-3 rounded-full bg-white/10 py-1.5 pl-1.5 pr-5 text-sm font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15"
+              className="group mt-5 inline-flex items-center gap-3 rounded-full bg-white/10 py-1.5 pl-1.5 pr-5 text-sm font-semibold text-white ring-1 ring-white/10 transition hover:bg-white/15 sm:mt-6"
             >
               <span className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-tr from-[#f9a43a] via-[#e1306c] to-[#833ab4] text-white transition-transform duration-300 group-hover:rotate-[12deg] group-hover:scale-110">
                 <Insta />
@@ -108,41 +111,41 @@ export default function Footer() {
           </div>
 
           {/* Links */}
-          <div className="lg:col-span-2">
-            <h3 className="mb-5 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">Explore</h3>
-            <ul className="space-y-3">
+          <nav aria-label="Explore" className="lg:col-span-2">
+            <h3 className={HEADING}>Explore</h3>
+            <ul>
               {QUICK_LINKS.map((l) => (
                 <li key={l.label}>
-                  <Link href={l.href} className="transition-colors hover:text-white">
+                  <Link href={l.href} className="inline-block py-1.5 transition-colors hover:text-white">
                     {l.label}
                   </Link>
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
 
-          <div className="lg:col-span-2">
-            <h3 className="mb-5 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">Our brands</h3>
-            <ul className="space-y-3">
+          <nav aria-label="Our brands" className="lg:col-span-2">
+            <h3 className={HEADING}>Our brands</h3>
+            <ul>
               {BRANDS.map((b) => (
                 <li key={b.id}>
-                  <Link href={`/shop?brand=${b.id}`} className="group inline-flex items-center gap-2.5 transition-colors hover:text-white">
-                    <span className="h-2 w-2 rounded-full transition-transform duration-300 group-hover:scale-150" style={{ background: b.color }} />
+                  <Link href={`/shop?brand=${b.id}`} className="group inline-flex items-center gap-2.5 py-1.5 transition-colors hover:text-white">
+                    <span className="h-2 w-2 shrink-0 rounded-full transition-transform duration-300 group-hover:scale-150" style={{ background: b.color }} />
                     {b.name}
                   </Link>
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
 
           {/* Address + contact */}
-          <div className="sm:col-span-2 lg:col-span-4">
-            <h3 className="mb-5 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">Our address</h3>
+          <div className="col-span-2 md:col-span-2 lg:col-span-4">
+            <h3 className={HEADING}>Our address</h3>
             <div className="flex gap-3">
               <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/10 text-white">
                 <Pin />
               </span>
-              <address className="not-italic leading-relaxed">
+              <address className="min-w-0 not-italic leading-relaxed">
                 Kolenchery, Perumbavoor Road,
                 <br />
                 Jai Bharat College Stop,
@@ -151,19 +154,19 @@ export default function Footer() {
               </address>
             </div>
 
-            <h3 className="mb-4 mt-8 text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">Get in touch</h3>
+            <h3 className={`${HEADING} mt-8`}>Get in touch</h3>
             <a href="tel:+918714410040" className="group inline-flex items-center gap-3">
-              <span className="grid h-9 w-9 place-items-center rounded-full bg-white/10 text-white transition-colors group-hover:bg-white group-hover:text-neutral-900">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/10 text-white transition-colors group-hover:bg-white group-hover:text-neutral-900">
                 <Phone />
               </span>
-              <span className={`${display.className} text-xl font-bold tracking-tight text-white`}>+91 87144 10040</span>
+              <span className={`${display.className} whitespace-nowrap text-lg font-bold tracking-tight text-white sm:text-xl`}>+91 87144 10040</span>
             </a>
           </div>
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-14 flex flex-col items-start justify-between gap-3 border-t border-white/10 pt-6 text-sm text-neutral-500 sm:flex-row sm:items-center">
-<p>© 2026 Empire AE IT Services. All rights reserved.</p>
+        <div className="mt-12 flex flex-col items-start justify-between gap-3 border-t border-white/10 pt-6 text-sm text-neutral-500 sm:mt-14 sm:flex-row sm:items-center">
+          <p>© 2026 Empire AE IT Services. All rights reserved.</p>
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span>LIC NO: KL-02-118168</span>
             <span aria-hidden="true" className="h-1 w-1 rounded-full bg-neutral-600" />

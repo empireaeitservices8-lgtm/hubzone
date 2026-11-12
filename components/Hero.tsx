@@ -1,72 +1,225 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useCallback, useState } from "react";
 import { display, mono } from "@/lib/fonts";
 
-/* Optional background media – put files in /public and set one of these.
-   Leave both empty to use the animated dark background below. */
-const BG_VIDEO = ""; // e.g. "/hero.mp4"
-const BG_IMAGE = "/hero2.png"; // e.g. "/hero.jpg"
+type Slide = {
+  image: string; // file in /public
+  position: string; // CSS object-position, keeps the subject in frame
+  eyebrow: string;
+  title: [string, string]; // two lines
+  text: string;
+  cta: { label: string; href: string };
+};
+
+const SLIDES: Slide[] = [
+  {
+    image: "/hero2.png", // change to any image you want for the welcome slide
+    position: "50% 50%",
+    eyebrow: "Welcome to the",
+    title: ["Hybrid Universal", "Zone."],
+    text: "Four brands. One roof.",
+    cta: { label: "Shop all brands", href: "/shop" },
+  },
+  {
+    image: "/ayurvedic.jpg",
+    position: "70% 65%",
+    eyebrow: "Ayurvedic Cosmetics",
+    title: ["Ancient wisdom,", "for your skin."],
+    text: "Plant-based care, made the traditional way.",
+    cta: { label: "Shop cosmetics", href: "/shop/cosmetics" },
+  },
+  {
+    image: "/kitchen.jpg",
+    position: "60% 50%",
+    eyebrow: "Kitchen Essentials",
+    title: ["Built for", "every meal."],
+    text: "Premium cookware that lasts for years.",
+    cta: { label: "Shop kitchen", href: "/shop/kitchen" },
+  },
+  {
+    image: "/coffee_beans.jpg",
+    position: "75% 50%",
+    eyebrow: "Coffee Beans",
+    title: ["Roasted dark.", "Brewed bold."],
+    text: "Freshly roasted beans for a richer cup.",
+    cta: { label: "Shop coffee", href: "/shop/coffee" },
+  },
+  {
+    image: "/cleaning.jpg",
+    position: "50% 55%",
+    eyebrow: "Cleaning Chemicals",
+    title: ["Spotless.", "Every surface."],
+    text: "Professional-grade clean, effortless results.",
+    cta: { label: "Shop cleaning", href: "/shop/cleaning" },
+  },
+];
+
+const INTERVAL = 6000; // ms per slide
 
 const GRAIN =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E\")";
 
+// Staggered fade-up used by each piece of text
+const reveal = (active: boolean, delay: string) =>
+  `transition-all duration-700 ease-out ${active ? `translate-y-0 opacity-100 ${delay}` : "translate-y-5 opacity-0"}`;
+
 export default function Hero() {
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  const go = useCallback((i: number) => setIndex((i + SLIDES.length) % SLIDES.length), []);
+
   return (
-    <section className="relative isolate flex min-h-[100svh] overflow-hidden bg-[#07090b] text-[#f7f4f0]">
+    <section
+      className="relative isolate flex min-h-[100svh] overflow-hidden bg-[#07090b] text-[#f7f4f0]"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={() => setPaused(false)}
+      role="region"
+      aria-roledescription="carousel"
+      aria-label="Featured"
+    >
       <style>{`
-        @keyframes hz-drift-a { 0%,100% { transform: translate3d(0,0,0) scale(1) } 50% { transform: translate3d(8%,10%,0) scale(1.2) } }
-        @keyframes hz-drift-b { 0%,100% { transform: translate3d(0,0,0) scale(1.1) } 50% { transform: translate3d(-10%,-8%,0) scale(0.95) } }
-        @media (prefers-reduced-motion: reduce) { .hz-anim { animation: none !important } }
+        @keyframes hz-progress { from { transform: scaleX(0) } to { transform: scaleX(1) } }
+        .hz-bar { transform-origin: left; animation: hz-progress ${INTERVAL}ms linear forwards }
+        @keyframes hz-zoom { from { transform: scale(1) } to { transform: scale(1.08) } }
+        .hz-zoom { animation: hz-zoom ${INTERVAL + 1500}ms ease-out forwards }
+        @media (prefers-reduced-motion: reduce) {
+          .hz-bar { animation: none; transform: scaleX(1) }
+          .hz-zoom { animation: none }
+        }
       `}</style>
 
-      {/* ------------------------------ Background ------------------------------ */}
+      {/* ------------------------------ Backgrounds ------------------------------ */}
       <div aria-hidden="true" className="absolute inset-0 -z-10">
-        {BG_VIDEO && <video className="absolute inset-0 h-full w-full object-cover" src={BG_VIDEO} autoPlay muted loop playsInline />}
-        {BG_IMAGE && <Image src={BG_IMAGE} alt="" fill priority sizes="100vw" className="object-cover" />}
+        {SLIDES.map((s, i) => (
+          <div
+            key={s.image}
+            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${i === index ? "opacity-100" : "opacity-0"}`}
+          >
+            <Image
+              src={s.image}
+              alt=""
+              fill
+              priority={i === 0}
+              sizes="100vw"
+              className={`object-cover ${i === index ? "hz-zoom" : ""}`}
+              style={{ objectPosition: s.position, animationPlayState: paused ? "paused" : "running" }}
+            />
+          </div>
+        ))}
 
-        {/* animated dark scene with the four brand colours (shown when no photo/video is set) */}
-        {!BG_VIDEO && !BG_IMAGE && (
-          <>
-            <div className="hz-anim absolute -left-[10%] top-[5%] h-[60vmax] w-[60vmax] rounded-full bg-[#4caf50]/25 blur-[130px]" style={{ animation: "hz-drift-a 24s ease-in-out infinite" }} />
-            <div className="hz-anim absolute -right-[10%] top-[-10%] h-[55vmax] w-[55vmax] rounded-full bg-[#2fa8e8]/25 blur-[130px]" style={{ animation: "hz-drift-b 30s ease-in-out infinite" }} />
-            <div className="hz-anim absolute bottom-[-30%] left-[15%] h-[55vmax] w-[55vmax] rounded-full bg-[#f08a24]/20 blur-[130px]" style={{ animation: "hz-drift-b 34s ease-in-out infinite" }} />
-            <div className="hz-anim absolute bottom-[-35%] right-[5%] h-[50vmax] w-[50vmax] rounded-full bg-[#d4a24c]/20 blur-[130px]" style={{ animation: "hz-drift-a 38s ease-in-out infinite" }} />
-          </>
-        )}
-
-        {/* darken for legibility + grain */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/35 to-black/70" />
+        {/* Dark gradient on the text side + top/bottom, so text is always readable */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/10 sm:from-black/80 sm:via-black/45" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/40" />
         <div className="absolute inset-0 opacity-[0.08] mix-blend-overlay" style={{ backgroundImage: GRAIN }} />
       </div>
 
       {/* -------------------------------- Content -------------------------------- */}
-      <div className="mx-auto flex w-full max-w-[1500px] flex-col justify-center px-5 pb-14 pt-32 sm:px-8 sm:pt-40">
-        <p className={`${mono.className} text-[clamp(0.95rem,1.5vw,1.3rem)] uppercase`}>Hybrid Universal Business Zone</p>
+      <div className="mx-auto flex w-full max-w-[1500px] flex-col justify-between px-5 pb-8 pt-32 sm:px-8 sm:pb-10 sm:pt-40">
+        {/* All slides share one grid cell so height never jumps between slides */}
+        <div className="grid flex-1 items-center">
+          {SLIDES.map((s, i) => {
+            const active = i === index;
+            return (
+              <div
+                key={s.title[0]}
+                aria-hidden={!active}
+                className={`col-start-1 row-start-1 max-w-4xl ${active ? "" : "pointer-events-none"}`}
+              >
+                <div className={`flex items-center gap-3 ${reveal(active, "delay-200")}`}>
+                  <p className={`${mono.className} text-[clamp(0.7rem,1vw,0.85rem)] uppercase tracking-[0.22em] text-white`}>
+                    {s.eyebrow}
+                  </p>
+                  <span className="h-px w-12 bg-white/40" />
+                </div>
 
-        <h1 className={`${display.className} mt-5 text-[clamp(3.4rem,13vw,13rem)] font-bold leading-[0.88] tracking-[-0.06em]`}>
-          Four Brands.
-          <br /> One Zone.
-        </h1>
+                <h1
+                  className={`${display.className} mt-5 text-[clamp(2.5rem,6vw,5.5rem)] font-bold leading-[0.98] tracking-[-0.05em] text-[#f7f4f0] [text-shadow:0_2px_30px_rgba(0,0,0,0.55)] ${reveal(active, "delay-300")}`}
+                >
+                  {s.title[0]}
+                  <br />
+                  {s.title[1]}
+                </h1>
 
-        <p className={`${display.className} mt-8 max-w-3xl text-[clamp(1.1rem,2vw,1.75rem)] font-medium leading-snug tracking-[-0.02em] text-white/90`}>
-          Ayurvedic cosmetics, kitchen essentials, coffee beans and cleaning chemicals, all under one roof.
-        </p>
+                <p
+                  className={`${display.className} mt-5 max-w-md text-[clamp(1rem,1.3vw,1.2rem)] font-medium leading-snug tracking-[-0.01em] text-white [text-shadow:0_1px_18px_rgba(0,0,0,0.6)] ${reveal(active, "delay-500")}`}
+                >
+                  {s.text}
+                </p>
 
-        <div className="mt-10 flex flex-wrap items-center gap-3 sm:gap-4">
-          <Link
-            href="/shop"
-            className={`${mono.className} inline-flex items-center gap-5 rounded-full bg-[#f7f4f0] px-7 py-4 text-sm uppercase text-neutral-900 transition-transform hover:scale-[1.03] active:scale-95 sm:px-8 sm:py-5`}
-          >
-            Shop all brands
-            <span className="h-2 w-2 rounded-full bg-current" />
-          </Link>
-          <Link
-            href="/contact"
-            className={`${mono.className} inline-flex items-center gap-5 rounded-full bg-neutral-900/90 px-7 py-4 text-sm uppercase text-white ring-1 ring-white/10 transition-transform hover:scale-[1.03] active:scale-95 sm:px-8 sm:py-5`}
-          >
-            Get in touch
-            <span className="h-2 w-2 rounded-full bg-current" />
-          </Link>
+                <div className={`mt-8 flex flex-wrap items-center gap-3 ${reveal(active, "delay-700")}`}>
+                  <Link
+                    href={s.cta.href}
+                    tabIndex={active ? 0 : -1}
+                    className={`${mono.className} inline-flex items-center gap-4 rounded-full bg-[#f7f4f0] px-6 py-3.5 text-xs uppercase text-neutral-900 transition-transform hover:scale-[1.03] active:scale-95`}
+                  >
+                    {s.cta.label}
+                    <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                  </Link>
+                  <Link
+                    href="/contact"
+                    tabIndex={active ? 0 : -1}
+                    className={`${mono.className} inline-flex items-center gap-4 rounded-full bg-black/50 px-6 py-3.5 text-xs uppercase text-white ring-1 ring-white/25 backdrop-blur-md transition-transform hover:scale-[1.03] active:scale-95`}
+                  >
+                    Get in touch
+                    <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                  </Link>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Controls: progress bars + counter + arrows */}
+        <div className="mt-10 flex items-center gap-4 sm:gap-6">
+          <div className="flex flex-1 gap-2">
+            {SLIDES.map((s, i) => (
+              <button
+                key={s.title[0]}
+                onClick={() => go(i)}
+                aria-label={`Go to slide ${i + 1}: ${s.eyebrow}`}
+                aria-current={i === index}
+                className="group relative h-6 max-w-24 flex-1"
+              >
+                <span className="absolute inset-x-0 top-1/2 h-[3px] -translate-y-1/2 overflow-hidden rounded-full bg-white/25 group-hover:bg-white/40">
+                  {i === index && (
+                    <span
+                      key={index}
+                      className="hz-bar block h-full w-full rounded-full bg-white"
+                      style={{ animationPlayState: paused ? "paused" : "running" }}
+                      onAnimationEnd={() => go(index + 1)}
+                    />
+                  )}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <span className={`${mono.className} hidden text-xs uppercase tracking-widest text-white/80 sm:block`}>
+            0{index + 1} / 0{SLIDES.length}
+          </span>
+
+          <div className="flex gap-2">
+            <button
+              onClick={() => go(index - 1)}
+              aria-label="Previous slide"
+              className="grid h-10 w-10 place-items-center rounded-full bg-black/50 ring-1 ring-white/25 backdrop-blur-md transition-transform hover:scale-105 active:scale-95"
+            >
+              ←
+            </button>
+            <button
+              onClick={() => go(index + 1)}
+              aria-label="Next slide"
+              className="grid h-10 w-10 place-items-center rounded-full bg-[#f7f4f0] text-neutral-900 transition-transform hover:scale-105 active:scale-95"
+            >
+              →
+            </button>
+          </div>
         </div>
       </div>
     </section>

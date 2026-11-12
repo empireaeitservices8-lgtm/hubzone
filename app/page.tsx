@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Hero from "@/components/Hero";
 import Brands from "@/components/Brands";
+import Achievements from "@/components/Achievements";
 
 export const metadata: Metadata = {
   title: "HubZone | Hybrid Universal Business Zone",
@@ -12,6 +13,7 @@ export default function Home() {
     <main>
       <Hero />
       <Brands />
+      <Achievements/>
     </main>
   );
 }
