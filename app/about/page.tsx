@@ -2,7 +2,7 @@
 
 /**
  * HUBZONE – About page (fully responsive, images shown in full)
- * Drop into: app/about/page.tsx (or app/page.tsx)
+ * Drop into: app/about/page.tsx
  * Requires: Next.js 13.4+ (App Router), React 18+. No other dependencies.
  *
  * If an image file is missing, the <img> hides itself and the gradient/placeholder underneath shows.
@@ -65,6 +65,14 @@ const BRANDS = [
   { name: "HUBCOOK", tagline: "Kitchen essentials", img: "/logos/hub_cook.webp", items: ["Dosa Tawa", "Fry Pan", "Bowl"] },
   { name: "HUBCOF", tagline: "Wayanad coffee", img: "/logos/hubcof.webp", items: ["Wayanad Coffee"] },
   { name: "HUBWASH", tagline: "Cleaning products", img: "/logos/hubwash.webp", items: ["Liquid Detergent", "Car Wash", "Brass Cleaner", "Fabric Stiff", "Floor Cleaner", "Hand Wash", "Toilet Cleaner"] },
+];
+
+/** Footer brand links (match the shop filter ids) */
+const FOOTER_BRANDS = [
+  { label: "HUBCARE", href: "/shop?category=care" },
+  { label: "HUBCOOK", href: "/shop?category=cook" },
+  { label: "HUBCOF", href: "/shop?category=coffee" },
+  { label: "HUBWASH", href: "/shop?category=wash" },
 ];
 
 const MD = {
@@ -260,28 +268,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="foot">
-        <div className="wrap">
-          <div className="frow">
-            <div className="fbrand">
-              <span className="flogo">
-                <Img src="/logo.png" alt="HUBZONE logo" lazy={false} />
-              </span>
-              <b className="fserif">Design for how you live.</b>
-              <br />
-              Hybrid Universal Business Zone
-            </div>
-            <div>HUBCARE<br />HUBCOOK<br />HUBCOF<br />HUBWASH</div>
-            <div>
-              WhatsApp<br />
-              <a href={WHATSAPP}>+91 87144 10040</a>
-            </div>
-          </div>
-          <div className="big" aria-hidden="true">HUBZONE</div>
-          <p className="copy">&copy; 2026 HUBZONE. All rights reserved.</p>
-        </div>
-      </footer>
+     
     </div>
   );
 }
@@ -291,7 +278,7 @@ const css = `
 background:var(--dark);color:var(--ink);font:400 16px/1.65 var(--font-sans),system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden;width:100%}
 .hz *{box-sizing:border-box;margin:0}
 .hz img{max-width:100%}
-.hz h1,.hz h2,.hz h3,.hz .logo,.hz .fserif,.hz .big,.hz .panel span{font-family:var(--font-serif),Georgia,serif;font-weight:500}
+.hz h1,.hz h2,.hz h3,.hz .logo,.hz .ftag,.hz .big,.hz .panel span{font-family:var(--font-serif),Georgia,serif;font-weight:500}
 .hz a{color:inherit}
 .hz :focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .wrap{max-width:1120px;margin:0 auto;padding:0 24px;width:100%}
@@ -338,7 +325,9 @@ animation-delay:calc(var(--i)*.2s),calc(1.6s + var(--i)*.35s);transition:transla
 .sub{text-align:center;color:var(--muted);max-width:56ch;margin:0 auto 52px}
 .sub.inv{color:rgba(246,233,208,.72);margin-bottom:28px}
 
-/* about: photo shown in full at its natural ratio */
+/* about: photo shown in full at its natural ratio.
+   Extra top padding keeps the title clear of the fixed header (76px phones / 88px desktop). */
+.hz section.aboutdark{padding-top:168px}
 .about{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
 .aboutdark{background:radial-gradient(900px 420px at 85% 0,#6b3a24 0,rgba(107,58,36,.35) 45%,var(--dark) 80%),var(--dark)}
 .about p{color:rgba(246,233,208,.78);margin-bottom:16px;max-width:52ch}
@@ -388,14 +377,21 @@ animation-delay:calc(var(--i)*.2s),calc(1.6s + var(--i)*.35s);transition:transla
 .ctain{position:relative;z-index:1}
 .cta h2{font-size:clamp(34px,6vw,72px)}
 
-/* footer: logo on white */
-.foot{background:var(--dark);color:var(--on);padding-top:56px;overflow:hidden}
-.frow{display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap;font-size:14px;opacity:.95}
-.flogo{display:inline-flex;align-items:center;justify-content:center;background:#fff;padding:12px 18px;border-radius:6px;margin-bottom:16px}
-.flogo img{height:44px;width:auto;max-width:100%;display:block;object-fit:contain}
-.fserif{font-size:clamp(22px,3vw,26px)}
-.big{font-size:clamp(44px,15vw,200px);line-height:1;letter-spacing:.04em;white-space:nowrap;margin-top:40px;text-align:center;color:rgba(246,233,208,.9)}
-.copy{font-size:12px;opacity:.55;text-align:center;padding:14px 0 24px}
+/* footer */
+.foot{background:var(--dark);color:var(--on);padding:72px 0 0;overflow:hidden}
+.fgrid{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:48px;align-items:start}
+.fbrand{display:flex;flex-direction:column;align-items:flex-start}
+.flogo{display:inline-flex;align-items:center;justify-content:center;background:#fff;padding:12px 18px;border-radius:8px;margin-bottom:22px;text-decoration:none}
+.flogo img{height:48px;width:auto;max-width:100%;display:block;object-fit:contain}
+.ftag{font-size:clamp(26px,3vw,34px);line-height:1.15;margin-bottom:8px}
+.fsub{font-size:14px;color:rgba(246,233,208,.65);max-width:32ch}
+.fcol h4{font:500 13px/1.2 var(--font-sans),system-ui,sans-serif;color:rgba(246,233,208,.5);margin-bottom:16px;letter-spacing:.02em}
+.fcol ul{list-style:none;padding:0}
+.fcol li{margin-bottom:10px}
+.fcol a{font-size:15px;text-decoration:none;color:rgba(246,233,208,.92);transition:color .2s}
+.fcol a:hover{color:#fff;text-decoration:underline;text-underline-offset:4px}
+.big{font-size:clamp(46px,16.5vw,230px);line-height:.95;letter-spacing:.02em;white-space:nowrap;margin-top:72px;text-align:center;color:rgba(246,233,208,.9);user-select:none}
+.copy{font-size:12px;color:rgba(246,233,208,.5);text-align:center;padding:20px 0 28px;margin-top:8px;border-top:1px solid rgba(246,233,208,.12)}
 
 /* ---------- responsive ---------- */
 @media(max-width:1100px){
@@ -403,6 +399,7 @@ animation-delay:calc(var(--i)*.2s),calc(1.6s + var(--i)*.35s);transition:transla
 }
 @media(max-width:860px){
   .hz section{padding:72px 0}
+  .hz section.aboutdark{padding-top:150px}
   .chevs{padding:64px 0}
   .about,.mdgrid{grid-template-columns:1fr;gap:36px}
   .mdph{max-width:420px;margin:0 auto}
@@ -412,17 +409,24 @@ animation-delay:calc(var(--i)*.2s),calc(1.6s + var(--i)*.35s);transition:transla
   .pills{margin-top:32px}
   .sub{margin-bottom:36px}
   .dark h2{margin-bottom:36px}
+  .foot{padding-top:56px}
+  .fgrid{grid-template-columns:1fr 1fr;gap:36px 32px}
+  .fbrand{grid-column:1 / -1}
+  .big{margin-top:56px}
 }
 @media(max-width:520px){
   .wrap{padding:0 18px}
   .hz section{padding:56px 0}
+  .hz section.aboutdark{padding-top:124px}
   .units,.cols{grid-template-columns:1fr}
   .team{gap:16px}
   .chlabel{font-size:11px;left:22%;bottom:9%}
   .pills li{font-size:12px;padding:8px 14px}
   .panel span{left:22px;right:22px;bottom:22px}
-  .frow{flex-direction:column;gap:22px}
   .btn{padding:12px 22px}
+  .foot{padding-top:44px}
+  .flogo img{height:40px}
+  .big{margin-top:44px}
 }
 @media(hover:none){
   .chlabel{opacity:1;transform:none}
