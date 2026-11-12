@@ -230,7 +230,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                         aria-label={shopOpen ? "Close shop categories" : "Open shop categories"}
                         className={`grid h-6 w-6 place-items-center rounded-full transition-colors ${light ? "hover:bg-white/10" : "hover:bg-black/5"}`}
                       >
-                        <span className={`transition-transform duration-300 ${shopOpen ? "rotate-180" : ""}`}>
+                        <span className={`flex h-6 w-6 items-center justify-center rounded-full transition-colors ${light ? "hover:bg-white/10" : "hover:bg-black/5"}`}>
                           <Chevron />
                         </span>
                       </button>
@@ -247,7 +247,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
               href="/cart"
               aria-label={`Cart, ${cartCount} items`}
               className={[
-                "relative grid h-11 w-11 place-items-center rounded-full border transition-colors",
+                "relative flex h-11 w-11 items-center justify-center rounded-full border transition-colors",
                 light ? "border-white/30 hover:bg-white/10" : "border-black/10 bg-white hover:border-black/25",
               ].join(" ")}
             >
@@ -289,7 +289,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
               aria-controls="site-menu"
               aria-label={open ? "Close menu" : "Open menu"}
               className={[
-                "relative grid h-11 w-11 place-items-center rounded-full border transition-colors lg:hidden",
+                "relative flex h-11 w-11 items-center justify-center rounded-full border transition-colors lg:hidden",
                 open
                   ? "border-neutral-900 bg-neutral-900 text-white"
                   : light
@@ -297,7 +297,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                     : "border-black/10 bg-white hover:border-black/25",
               ].join(" ")}
             >
-              <span className="relative block h-3.5 w-5">
+              <span className="relative block h-3.5 w-5 shrink-0">
                 <span className={`absolute left-0 h-[2px] w-5 rounded bg-current transition-all duration-300 ${open ? "top-[6px] rotate-45" : "top-0"}`} />
                 <span className={`absolute left-0 top-[6px] h-[2px] w-5 rounded bg-current transition-all duration-200 ${open ? "opacity-0" : "opacity-100"}`} />
                 <span className={`absolute left-0 h-[2px] w-5 rounded bg-current transition-all duration-300 ${open ? "top-[6px] -rotate-45" : "top-[12px]"}`} />
@@ -458,7 +458,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                 {l.mega && (
                   <div
                     id="mobile-shop"
-                    className={`grid transition-[grid-template-rows] duration-500 ease-out ${mobileShop ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-black/15 bg-white/70 backdrop-blur transition-colors hover:bg-white"
                   >
                     <div className="overflow-hidden">
                       <div className="space-y-3 pb-4 pt-3">
@@ -527,7 +527,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                 Login
               </Link>
               <Link
-                href="/signup"
+                href="/register"
                 onClick={close}
                 tabIndex={open ? 0 : -1}
                 className="rounded-full bg-neutral-900 px-6 py-3 text-[15px] font-semibold text-white shadow-lg shadow-black/15"
