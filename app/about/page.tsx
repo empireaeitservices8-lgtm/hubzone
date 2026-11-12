@@ -49,6 +49,10 @@ const TEAM: Member[] = [
   { name: "Subin P R", role: "Branch Manager, Kannur", img: "/team/subin.webp", tones: ["#c08460", "#f3cfae", "#222222"] },
   { name: "Jishnu A", role: "Branch Manager, Calicut", img: "/team/jishnu.webp", tones: ["#a5704f", "#ebbd9b", "#6b3f2b"] },
   { name: "Abhijith E R", role: "Branch Manager, Thrissur", img: "/team/abhijith.webp", tones: ["#b4795a", "#f1c7a6", "#4a3226"] },
+  { name: "Bhasi Babu", role: "Branch Manager, Thrissur", img: "/team/bhasi.webp", tones: ["#b4795a", "#f1c7a6", "#4a3226"] },
+  { name: "Sabna Sheri", role: "Asst. Manager, Malappuram", img: "/team/sabna.webp", tones: ["#b4795a", "#f1c7a6", "#4a3226"] },
+  { name: "Hashim", role: "Asst. Manager, Palakkad", img: "/team/hashim.webp", tones: ["#b4795a", "#f1c7a6", "#4a3226"] },
+  { name: "Niyas", role: "Asst. Manager, Wayanad", img: "/team/niyas.webp", tones: ["#b4795a", "#f1c7a6", "#4a3226"] },
 ];
 
 const PILLARS = ["Research-Driven Innovation", "Sustainable Manufacturing", "Versatile Product Portfolio"];
@@ -58,6 +62,7 @@ const CHEVRONS: { label: string; img: string; bg: string }[] = [
   { label: "HUBCOOK", img: "/chevrons/hubcook.png", bg: "linear-gradient(160deg,#d9a05b,#a8643a 55%,#3a2518)" },
   { label: "HUBCOF", img: "/chevrons/hubcof.jpg", bg: "linear-gradient(160deg,#c89a6a,#6b4128 55%,#24160f)" },
   { label: "HUBWASH", img: "/chevrons/hubwash.png", bg: "linear-gradient(160deg,#7fb2c9,#d9e6e0 50%,#3a4a52)" },
+  
 ];
 
 const BRANDS = [
