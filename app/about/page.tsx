@@ -55,7 +55,7 @@ const PILLARS = ["Research-Driven Innovation", "Sustainable Manufacturing", "Ver
 
 const CHEVRONS: { label: string; img: string; bg: string }[] = [
   { label: "HUBCARE", img: "/chevrons/hubcare.jpg", bg: "linear-gradient(160deg,#9bb07a,#e6c88a 55%,#4a3a22)" },
-  { label: "HUBNOIR", img: "/chevrons/HUBNOIR.JPG", bg: "linear-gradient(160deg,#9b7fd1,#5b3a8f 55%,#1f1233)" },
+  { label: "HUBNOIR", img: "/chevrons/hubnoir.jpg", bg: "linear-gradient(160deg,#9b7fd1,#5b3a8f 55%,#1f1233)" },
   { label: "HUBCOOK", img: "/chevrons/hubcook.png", bg: "linear-gradient(160deg,#d9a05b,#a8643a 55%,#3a2518)" },
   { label: "HUBCOF", img: "/chevrons/hubcof.jpg", bg: "linear-gradient(160deg,#c89a6a,#6b4128 55%,#24160f)" },
   { label: "HUBWASH", img: "/chevrons/hubwash.png", bg: "linear-gradient(160deg,#7fb2c9,#d9e6e0 50%,#3a4a52)" },
