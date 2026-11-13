@@ -17,17 +17,17 @@ const BRANDS = [
     logo: "/logos/hub_noir.png", tint: "#e9e1f3", ink: "#4a2a78", color: "#7e57c2",
   },
   {
-    id: "cook", name: "HubCook", tag: "Healthy, easy cooking",
+    id: "cook", name: "HubCook", tag: "Home Universal Best Cook",
     desc: "Stainless steel non-stick cookware for gas, induction and oven, plus PP5 oven-safe containers.",
     logo: "/logos/hub_cook.webp", tint: "#fde5cc", ink: "#c2570c", color: "#f08a24",
   },
   {
-    id: "cof", name: "HubCof", tag: "100% pure Wayanad coffee",
+    id: "cof", name: "HubCof", tag: "High Range Ultimate Beans Coffee",
     desc: "Zero chicory, no fillers. Just rich aroma and bold, authentic taste.",
     logo: "/logos/hubcof.webp", tint: "#f4e6c8", ink: "#8a5a14", color: "#d4a24c",
   },
   {
-    id: "wash", name: "HubWash", tag: "Fresh, clean, every wash",
+    id: "wash", name: "HubWash", tag: "Hygiene Universal Brilliance",
     desc: "Complete home cleaning solutions that keep every corner spotless and hygienic.",
     logo: "/logos/hubwash.webp", tint: "#d6edfb", ink: "#0b78b8", color: "#2fa8e8",
   },
