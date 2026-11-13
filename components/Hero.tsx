@@ -43,7 +43,7 @@ const SLIDES: Slide[] = [
     eyebrow: "HubNoir Perfumes",
     title: ["Dark notes.", "Bold presence."],
     text: "Signature fragrances that linger long after you leave.",
-    cta: { label: "Shop perfumes", href: "/shop?brand=noir" },
+    cta: { label: "Shop HubNoir", href: "/shop?brand=noir" },
   },
   {
     image: "/kitchen.jpg",
@@ -51,7 +51,7 @@ const SLIDES: Slide[] = [
     eyebrow: "HubCook Essentials",
     title: ["Built for", "every meal."],
     text: "Premium cookware that lasts for years.",
-    cta: { label: "Shop kitchen", href: "/shop" },
+    cta: { label: "Shop HubCook", href: "/shop" },
   },
   {
     image: "/coffee_beans.jpg",
@@ -59,7 +59,7 @@ const SLIDES: Slide[] = [
     eyebrow: "HubCof Coffee",
     title: ["Roasted dark.", "Brewed bold."],
     text: "Freshly roasted beans for a richer cup.",
-    cta: { label: "Shop coffee", href: "/shop" },
+    cta: { label: "Shop HubCof", href: "/shop" },
   },
   {
     image: "/cleaning.jpg",
@@ -67,7 +67,7 @@ const SLIDES: Slide[] = [
     eyebrow: "HubWash Chemicals",
     title: ["Spotless.", "Every surface."],
     text: "Professional-grade clean, effortless results.",
-    cta: { label: "Shop cleaning", href: "/shop" },
+    cta: { label: "Shop HubWash", href: "/shop" },
   },
 ];
 
