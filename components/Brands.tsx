@@ -258,7 +258,7 @@ export default function Brands() {
               transition: "opacity 900ms ease 500ms, transform 900ms ease 500ms",
             }}
           >
-            Four everyday brands, one standard of quality. Tap a brand to learn more.
+            Five everyday brands, one standard of quality. Tap a brand to learn more.
           </p>
         </div>
 
