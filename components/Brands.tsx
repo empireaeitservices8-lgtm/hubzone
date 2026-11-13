@@ -7,9 +7,14 @@ import { display } from "@/lib/fonts";
 
 const BRANDS = [
   {
-    id: "care", name: "HubCare", tag: "Ayurvedic hair & skin care",
-    desc: "Herbal unisex products by Ayurvedic doctors, made with pure natural ingredients.",
+    id: "care", name: "HubCare", tag: "Herbal Unisex Body Care",
+    desc: "Herbal unisex products made with pure natural ingredients.",
     logo: "/logos/hub_care.webp", tint: "#e3f2df", ink: "#2e7d32", color: "#4caf50",
+  },
+    {
+    id: "noir", name: "HubNoir", tag: "Heritage Urban Bliss",
+    desc: "Bold, long-lasting fragrances with rich notes, made for every mood and occasion.",
+    logo: "/logos/hub_noir.png", tint: "#e9e1f3", ink: "#4a2a78", color: "#7e57c2",
   },
   {
     id: "cook", name: "HubCook", tag: "Healthy, easy cooking",

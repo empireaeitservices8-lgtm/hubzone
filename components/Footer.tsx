@@ -4,6 +4,7 @@ import { display } from "@/lib/fonts";
 
 const BRANDS = [
   { id: "care", name: "HubCare", color: "#4caf50" },
+  { id: "perfume", name: "HubNoir", color: "#955ce0" },
   { id: "cook", name: "HubCook", color: "#f08a24" },
   { id: "cof", name: "HubCof", color: "#d4a24c" },
   { id: "wash", name: "HubWash", color: "#2fa8e8" },

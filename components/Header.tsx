@@ -19,6 +19,7 @@ const MEGA_BG = "#0e1a15"; // header + panel colour when Shop is open
    Add a product to RAW in the products file and it shows up here automatically. */
 const BRAND_LOOK: Record<CategoryId, { name: string; color: string }> = {
   care: { name: "HubCare", color: "#4caf50" },
+  perfume: {name: "HubNoir", color: "#bddbda"},
   cook: { name: "HubCook", color: "#f08a24" },
   coffee: { name: "HubCof", color: "#d4a24c" },
   wash: { name: "HubWash", color: "#2fa8e8" },
@@ -148,13 +149,20 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                 : "border-black/10 bg-white/95 text-neutral-900 shadow-[0_10px_30px_-14px_rgba(0,0,0,0.25)] backdrop-blur",
         ].join(" ")}
       >
-        <div className="mx-auto flex h-[76px] max-w-[1500px] items-center justify-between gap-4 px-5 sm:h-[88px] sm:px-8">
-          {/* Logo on a white badge so it reads on any background */}
-          <Link href="/" onClick={close} aria-label={`${LOGO_ALT} home`} className="flex shrink-0 items-center">
-            <span className="flex items-center rounded-2xl bg-white px-3 py-1.5 shadow-sm ring-1 ring-black/5 sm:px-4 sm:py-2">
-              <Image src={LOGO_SRC} alt={LOGO_ALT} width={320} height={96} priority className="h-9 w-auto sm:h-11 lg:h-12" />
-            </span>
-          </Link>
+<div className="mx-auto flex h-[88px] max-w-[1500px] items-center justify-between gap-4 px-5 sm:h-[104px] sm:px-8">
+           {/* Logo in a round white badge so it reads on any background */}
+<Link href="/" onClick={close} aria-label={`${LOGO_ALT} home`} className="flex shrink-0 items-center">
+  <span className="grid h-14 w-14 place-items-center rounded-full bg-white shadow-sm ring-1 ring-black/5 sm:h-[72px] sm:w-[72px] lg:h-20 lg:w-20">
+    <Image
+      src={LOGO_SRC}
+      alt={LOGO_ALT}
+      width={389}
+      height={389}
+      priority
+      className="h-[94%] w-[94%] object-contain"
+    />
+  </span>
+</Link>
 
           {/* Desktop nav */}
           <nav className="hidden flex-1 justify-end lg:flex" aria-label="Main">
@@ -341,7 +349,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
         ].join(" ")}
       >
         {/* four-brand colour line, same as desktop */}
-        <div aria-hidden="true" className={`absolute inset-x-0 top-[76px] h-[2px] sm:top-[88px] ${BRAND_LINE}`} />
+        <div aria-hidden="true" className={`absolute inset-x-0 top-[88px] h-[2px] sm:top-[104px] ${BRAND_LINE}`} />
         {/* soft brand glow + dot grid */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute -right-40 -top-40 h-[560px] w-[560px] rounded-full bg-emerald-500/20 blur-[120px]" />
@@ -360,7 +368,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
 
         <div
           onClick={(e) => e.target === e.currentTarget && close()}
-          className="relative mx-auto flex min-h-full w-full max-w-[1400px] flex-col gap-10 px-5 pb-10 pt-[100px] sm:px-8 sm:pt-[130px]"
+          className="relative mx-auto flex min-h-full w-full max-w-[1400px] flex-col gap-10 px-5 pb-10 pt-[116px] sm:px-8 sm:pt-[146px]"
         >
           {/* Big links */}
           <nav aria-label="Menu" className="flex w-full flex-col">

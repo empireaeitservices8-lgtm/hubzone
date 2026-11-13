@@ -41,40 +41,38 @@ function Img({ src, alt, lazy = true }: { src: string; alt: string; lazy?: boole
 type Member = { name: string; role: string; img: string; tones: [string, string, string] };
 
 const TEAM: Member[] = [
-  { name: "Athira S", role: "A-Mart, Alappuzha", img: "/team/athira.webp", tones: ["#c98a5e", "#f1c9a5", "#2f2a26"] },
-  { name: "Pranav", role: "Asst. Manager, Kannur", img: "/team/pranav.webp", tones: ["#a86b4a", "#e8b998", "#5a3a2a"] },
-  { name: "Safvan", role: "B Talks Group, Nilambur", img: "/team/safvan.webp", tones: ["#8a5a3c", "#d9a581", "#1f1b18"] },
-  { name: "Soorya B Suresh", role: "Asst. Manager, Thiruvananthapuram", img: "/team/soorya.webp", tones: ["#b97a55", "#f0c4a0", "#7a4b32"] },
-  { name: "Sujeesh A", role: "Chief Accountant, Kannur", img: "/team/sujeesh.webp", tones: ["#9c6a4c", "#e3b08c", "#3a2c24"] },
+  { name: "Sujeesh A", role: "Chief Accountant, Palakkad", img: "/team/sujeesh.webp", tones: ["#9c6a4c", "#e3b08c", "#3a2c24"] },
+  { name: "Athira S", role: "Branch Manager, Alappuzha", img: "/team/athira.webp", tones: ["#c98a5e", "#f1c9a5", "#2f2a26"] },
+  { name: "Safvan A T", role: "Branch Manager, Nilambur", img: "/team/safvan.webp", tones: ["#8a5a3c", "#d9a581", "#1f1b18"] },
   { name: "Subin P R", role: "Branch Manager, Kannur", img: "/team/subin.webp", tones: ["#c08460", "#f3cfae", "#222222"] },
   { name: "Jishnu A", role: "Branch Manager, Calicut", img: "/team/jishnu.webp", tones: ["#a5704f", "#ebbd9b", "#6b3f2b"] },
+  { name: "Soorya B Suresh", role: "Branch Manager, Thiruvananthapuram", img: "/team/soorya.webp", tones: ["#8a5a3c", "#d9a581", "#1f1b18"] },
   { name: "Abhijith E R", role: "Branch Manager, Thrissur", img: "/team/abhijith.webp", tones: ["#b4795a", "#f1c7a6", "#4a3226"] },
   { name: "Bhasi Babu", role: "Branch Manager, Thrissur", img: "/team/bhasi.webp", tones: ["#b4795a", "#f1c7a6", "#4a3226"] },
-  { name: "Sabna Sheri", role: "Asst. Manager, Malappuram", img: "/team/sabna.webp", tones: ["#b4795a", "#f1c7a6", "#4a3226"] },
-  { name: "Hashim", role: "Asst. Manager, Palakkad", img: "/team/hashim.webp", tones: ["#b4795a", "#f1c7a6", "#4a3226"] },
-  { name: "Niyas", role: "Asst. Manager, Wayanad", img: "/team/niyas.webp", tones: ["#b4795a", "#f1c7a6", "#4a3226"] },
 ];
 
 const PILLARS = ["Research-Driven Innovation", "Sustainable Manufacturing", "Versatile Product Portfolio"];
 
 const CHEVRONS: { label: string; img: string; bg: string }[] = [
   { label: "HUBCARE", img: "/chevrons/hubcare.jpg", bg: "linear-gradient(160deg,#9bb07a,#e6c88a 55%,#4a3a22)" },
+  { label: "HUBNOIR", img: "/chevrons/HUBNOIR.JPG", bg: "linear-gradient(160deg,#9b7fd1,#5b3a8f 55%,#1f1233)" },
   { label: "HUBCOOK", img: "/chevrons/hubcook.png", bg: "linear-gradient(160deg,#d9a05b,#a8643a 55%,#3a2518)" },
   { label: "HUBCOF", img: "/chevrons/hubcof.jpg", bg: "linear-gradient(160deg,#c89a6a,#6b4128 55%,#24160f)" },
   { label: "HUBWASH", img: "/chevrons/hubwash.png", bg: "linear-gradient(160deg,#7fb2c9,#d9e6e0 50%,#3a4a52)" },
-  
 ];
 
 const BRANDS = [
-  { name: "HUBCARE", tagline: "Ayurvedic care products", img: "/logos/hub_care.webp", items: ["Hair Oil", "Ayurveda Soap", "Evrly Anti-Dandruff Shampoo", "Pain Oil", "Mehandhi", "Neelambari"] },
-  { name: "HUBCOOK", tagline: "Kitchen essentials", img: "/logos/hub_cook.webp", items: ["Dosa Tawa", "Fry Pan", "Bowl"] },
-  { name: "HUBCOF", tagline: "Wayanad coffee", img: "/logos/hubcof.webp", items: ["Wayanad Coffee"] },
-  { name: "HUBWASH", tagline: "Cleaning products", img: "/logos/hubwash.webp", items: ["Liquid Detergent", "Car Wash", "Brass Cleaner", "Fabric Stiff", "Floor Cleaner", "Hand Wash", "Toilet Cleaner"] },
+  { name: "HUBCARE", color: "#4caf50", tagline: "Ayurvedic care products", img: "/logos/hub_care.webp", items: ["Hair Oil", "Ayurveda Soap", "Evrly Anti-Dandruff Shampoo", "Pain Oil", "Mehandhi", "Neelayamari"] },
+  { name: "HUBNOIR", color: "#7e57c2", tagline: "Perfumes and Fragrances", img: "/logos/hub_noir.png", items: ["Perfumes", "Fragrances"] },
+  { name: "HUBCOOK", color: "#f08a24", tagline: "Kitchen essentials", img: "/logos/hub_cook.webp", items: ["Dosa Tawa", "Fry Pan", "Bowl"] },
+  { name: "HUBCOF", color: "#d4a24c", tagline: "Wayanad coffee", img: "/logos/hubcof.webp", items: ["Wayanad Coffee"] },
+  { name: "HUBWASH", color: "#2fa8e8", tagline: "Cleaning products", img: "/logos/hubwash.webp", items: ["Liquid Detergent", "Car Wash", "Brass Cleaner", "Fabric Stiff", "Floor Cleaner", "Hand Wash", "Toilet Cleaner"] },
 ];
 
 /** Footer brand links (match the shop filter ids) */
 const FOOTER_BRANDS = [
   { label: "HUBCARE", href: "/shop?category=care" },
+  { label: "HUBNOIR", href: "/shop?category=noir" },
   { label: "HUBCOOK", href: "/shop?category=cook" },
   { label: "HUBCOF", href: "/shop?category=coffee" },
   { label: "HUBWASH", href: "/shop?category=wash" },
@@ -85,7 +83,7 @@ const MD = {
   title: "Managing Director",
   img: "/team/hubail.webp",
   message:
-    "At HUBZONE we turn raw materials into finished goods people can trust. Every product from HUBCARE, HUBCOOK, HUBCOF and HUBWASH is built on research, careful sourcing and a promise of quality that we stand behind.",
+    "At HUBZONE we turn raw materials into finished goods people can trust. Every product from HUBCARE, HUBNOIR, HUBCOOK, HUBCOF and HUBWASH is built on research, careful sourcing and a promise of quality that we stand behind.",
 };
 
 const WELLNESS = [
@@ -146,8 +144,8 @@ export default function AboutPage() {
             <h2 className="left">About HUBZONE</h2>
             <p>
               HUBZONE is a leading manufacturer of innovative products. We specialize in a diverse range of goods,
-              including ayurvedic care, kitchen essentials, Wayanad coffee, cleaning products and electronics through
-              our HUBTECH unit.
+              including ayurvedic care, perfumes, kitchen essentials, Wayanad coffee, cleaning products and electronics
+              through our HUBTECH unit.
             </p>
             <p>
               Leveraging our full-scale production capabilities, we transform raw materials into high-quality finished
@@ -203,10 +201,10 @@ export default function AboutPage() {
       {/* BRANDS */}
       <section className="light" id="units">
         <div className="wrap">
-          <h2>Four brands for everyday life</h2>
+          <h2>Five brands for everyday life</h2>
           <div className="units">
             {BRANDS.map((b) => (
-              <article className="unit" key={b.name}>
+              <article className="unit" key={b.name} style={{ ["--c" as string]: b.color }}>
                 <div className="uimg">
                   <Img src={b.img} alt={`${b.name} – ${b.tagline}`} />
                 </div>
@@ -272,8 +270,6 @@ export default function AboutPage() {
           <a className="btn" href={WHATSAPP}>Let&rsquo;s Start</a>
         </div>
       </section>
-
-     
     </div>
   );
 }
@@ -291,10 +287,10 @@ background:var(--dark);color:var(--ink);font:400 16px/1.65 var(--font-sans),syst
 .btn:hover{background:#9f5230}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 
-/* chevrons (image fills the chevron shape) */
+/* chevrons (image fills the chevron shape) – sized so FIVE fit exactly in the strip */
 .chevs{padding:96px 0}
 .strip{display:flex;justify-content:center;max-width:980px;margin:0 auto}
-.chev{flex:0 0 33.5%;margin-left:-11.4%;aspect-ratio:.9;position:relative;clip-path:url(#hz-chev);cursor:pointer;
+.chev{flex:0 0 27.5%;margin-left:-9.35%;aspect-ratio:.9;position:relative;clip-path:url(#hz-chev);cursor:pointer;
 animation:chevIn 1.2s cubic-bezier(.2,.8,.2,1) both,chevFloat 6s ease-in-out 1.6s infinite alternate;
 animation-delay:calc(var(--i)*.2s),calc(1.6s + var(--i)*.35s);transition:translate .5s cubic-bezier(.2,.8,.2,1),scale .5s cubic-bezier(.2,.8,.2,1),filter .5s}
 .chev:first-child{margin-left:0}
@@ -302,7 +298,7 @@ animation-delay:calc(var(--i)*.2s),calc(1.6s + var(--i)*.35s);transition:transla
 .chimg{position:absolute;inset:0;animation:chevZoom 2.6s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i)*.2s)}
 .chimg img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
 .chev:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(30,20,14,.55))}
-.chlabel{position:absolute;left:26%;bottom:11%;z-index:1;color:#fff;font:500 22px var(--font-serif),Georgia,serif;font-style:italic;opacity:0;transform:translateY(8px);transition:.4s}
+.chlabel{position:absolute;left:26%;bottom:11%;z-index:1;color:#fff;font:500 20px var(--font-serif),Georgia,serif;font-style:italic;opacity:0;transform:translateY(8px);transition:.4s}
 .chev:hover .chlabel{opacity:1;transform:none}
 @keyframes chevIn{from{opacity:0;transform:translateX(-70px) scale(.5)}to{opacity:1;transform:none}}
 @keyframes chevZoom{from{transform:scale(1.35)}to{transform:scale(1)}}
@@ -343,16 +339,17 @@ animation-delay:calc(var(--i)*.2s),calc(1.6s + var(--i)*.35s);transition:transla
 .panel:before{content:"";position:absolute;inset:14px;border:1px solid rgba(255,255,255,.4);border-radius:3px;z-index:2;pointer-events:none}
 .panel span{position:absolute;left:30px;right:30px;bottom:28px;z-index:3;font-size:clamp(20px,2.6vw,32px);font-style:italic;line-height:1.15}
 
-/* brands: logos shown in full */
-.units{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-top:40px}
-.unit{background:var(--cream2);padding:28px;border-radius:6px;border-top:3px solid var(--accent);overflow:hidden;min-width:0}
+/* brands: 3 on the first row, 2 centred below; lists align to the bottom of each card */
+.units{display:flex;flex-wrap:wrap;justify-content:center;gap:24px;margin-top:40px}
+.unit{flex:0 0 calc((100% - 48px)/3);display:flex;flex-direction:column;background:var(--cream2);padding:28px;border-radius:6px;border-top:3px solid var(--c,var(--accent));overflow:hidden;min-width:0;transition:transform .3s ease,box-shadow .3s ease}
+.unit:hover{transform:translateY(-4px);box-shadow:0 18px 40px -22px rgba(42,35,30,.45)}
 .uimg{aspect-ratio:4/3;margin:-28px -28px 22px;overflow:hidden;background:#fff;padding:18px;display:flex;align-items:center;justify-content:center}
 .uimg:empty{display:none}
 .uimg img{width:100%;height:100%;object-fit:contain;object-position:center;display:block}
 .unit h3{font-size:clamp(26px,3vw,34px);margin-bottom:4px}
-.unit ul{list-style:none;padding:0;margin-top:16px;border-top:1px solid rgba(42,35,30,.18)}
+.unit p{color:var(--muted);max-width:46ch;margin-bottom:16px}
+.unit ul{list-style:none;padding:0;margin-top:auto;border-top:1px solid rgba(42,35,30,.18)}
 .unit li{padding:8px 0;border-bottom:1px solid rgba(42,35,30,.18);font-size:15px}
-.unit p{color:var(--muted);max-width:46ch}
 
 /* wellness: images shown in full */
 .dark h2{margin-bottom:48px}
@@ -400,7 +397,8 @@ animation-delay:calc(var(--i)*.2s),calc(1.6s + var(--i)*.35s);transition:transla
 
 /* ---------- responsive ---------- */
 @media(max-width:1100px){
-  .units,.cols{grid-template-columns:repeat(2,1fr)}
+  .cols{grid-template-columns:repeat(2,1fr)}
+  .unit{flex-basis:calc((100% - 24px)/2)}
 }
 @media(max-width:860px){
   .hz section{padding:72px 0}
@@ -410,7 +408,7 @@ animation-delay:calc(var(--i)*.2s),calc(1.6s + var(--i)*.35s);transition:transla
   .mdph{max-width:420px;margin:0 auto}
   .dark blockquote{max-width:none}
   .team{grid-template-columns:repeat(2,1fr);gap:22px}
-  .chlabel{font-size:15px}
+  .chlabel{font-size:14px}
   .pills{margin-top:32px}
   .sub{margin-bottom:36px}
   .dark h2{margin-bottom:36px}
@@ -423,9 +421,10 @@ animation-delay:calc(var(--i)*.2s),calc(1.6s + var(--i)*.35s);transition:transla
   .wrap{padding:0 18px}
   .hz section{padding:56px 0}
   .hz section.aboutdark{padding-top:124px}
-  .units,.cols{grid-template-columns:1fr}
+  .cols{grid-template-columns:1fr}
+  .unit{flex-basis:100%}
   .team{gap:16px}
-  .chlabel{font-size:11px;left:22%;bottom:9%}
+  .chlabel{font-size:10px;left:20%;bottom:9%}
   .pills li{font-size:12px;padding:8px 14px}
   .panel span{left:22px;right:22px;bottom:22px}
   .btn{padding:12px 22px}

@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import ProductCard, { TileArt } from "@/components/ProductCard";
+import ProductCard from "@/components/ProductCard";
 import ShopShell, { ShopTop, WRAP } from "@/components/ShopShell";
-import { PRODUCTS, discountPct, eff, getCategory, getProduct, hasOffer, inr, tileStyle } from "@/lib/products";
+import { PRODUCTS, discountPct, eff, getCategory, getImages, getProduct, hasOffer, inr } from "@/lib/products";
 import OrderPanel from "./OrderPanel";
+import ProductGallery from "./ProductGallery";
 
 /** Next.js 15: params is a Promise. (On Next 13/14 change the type to `{ params: { id: string } }` and drop the awaits.) */
 type Props = { params: Promise<{ id: string }> };
@@ -55,17 +56,13 @@ async function ProductContent({ params }: Props) {
           style={{ ["--tile" as string]: c.tile }}
         >
           <div className="md:sticky md:top-[110px]">
-            <div className={`relative aspect-square overflow-hidden rounded-[22px] shadow-[0_40px_70px_-30px_rgba(42,35,30,0.45),inset_0_0_0_1px_rgba(42,35,30,0.06)] sm:rounded-[30px]`} style={tileStyle(c.tile)}>
-              <TileArt src={p.img} name={p.name} pad="12%" />
-              <span className="absolute left-3 top-3 z-[2] rounded-full bg-white/90 px-3 py-[5px] text-[11px] font-medium backdrop-blur-sm sm:left-[18px] sm:top-[18px]">
-                {c.label}
-              </span>
-              {offer && (
-                <span className="absolute right-3 top-3 z-[2] rounded-full bg-[#b8613a] px-3 py-[5px] text-[11px] font-medium text-white sm:right-[18px] sm:top-[18px]">
-                  {discountPct(p)}% off
-                </span>
-              )}
-            </div>
+            <ProductGallery
+              images={getImages(p)}
+              name={p.name}
+              tile={c.tile}
+              label={c.label}
+              discount={offer ? discountPct(p) : undefined}
+            />
           </div>
 
           <div className="md:pt-2">
