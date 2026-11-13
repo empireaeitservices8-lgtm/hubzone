@@ -5,7 +5,7 @@ import { useState } from "react";
 /* Sends the enquiry to HubZone's WhatsApp with the message pre-filled (no backend needed). */
 const WHATSAPP_NUMBER = "918714410040";
 
-const TOPICS = ["General enquiry", "HubCare", "HubCook", "HubCof", "HubWash"];
+const TOPICS = ["General Enquiry", "HubCare", "HubNoir", "HubCook", "HubCof", "HubWash", "Job Enquiry"];
 
 const FIELD =
   "w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-base text-neutral-900 placeholder:text-neutral-400 transition focus:border-neutral-900 focus:outline-none focus:ring-4 focus:ring-neutral-900/10";

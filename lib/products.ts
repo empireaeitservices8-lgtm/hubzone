@@ -16,18 +16,18 @@ export const CATEGORIES: { id: CategoryId; label: string; brand: string; tile: s
 type Row = [string, string, CategoryId, number, number?, string?];
 const RAW: Row[] = [
   ["hair_oil", "Hair Oil 100 ml", "care", 550, 499],
-  ["ayurveda_soap", "Ayurveda Soap 100 gm", "care", 199, 175],
-  ["mehandhi", "Mehandhi 100 gm", "care", 339, 310],
-  ["neelayamari", "Neelayamari Podi 100 gm", "care", 355, 325],
+    ["neelayamari_shampoo", "Neelayamari Shampoo 120 ml", "care", 329, 295],
   ["pain_oil", "Pain Oil 100 ml", "care", 540, 495],
-  ["neelayamari_shampoo", "Neelayamari Shampoo 120 ml", "care", 295],
-  ["mukhakanthi_powder", "Mukhakanthi Powder", "care", 100],
+  ["ayurveda_soap", "Ayurveda Soap 100 gm", "care", 199, 175],
+  ["neelayamari", "Neelayamari Podi 100 gm", "care", 355, 325],
+    ["mehandhi", "Mehandhi 100 gm", "care", 339, 310],
   ["sandal_soap", "Natural Skin Care Soap 75 gm", "care", 110],
+    ["turmeric_soap", "Turmeric Soap 75 gm", "care", 99],
   ["mukhakanthi_soap", "Mughakanthi Soap 75 gm", "care", 110],
-  ["turmeric_soap", "Turmeric Soap 75 gm", "care", 99],
+  ["mukhakanthi_powder", "Mukhakanthi Powder", "care", 320, 290],
 
-  ["perfumes", "Perfume 50 ml", "perfume", 100],
-  ["fragrances", "Fragrances 50 ml", "perfume", 100],
+  ["perfumes", "Perfumes 50 ml", "perfume", 699, 599],
+  ["fragrances", "Fragrances 50 ml", "perfume", 699, 599],
 
   ["dosa_tawa", "Dosa Tawa", "cook", 1499, 1200],
   ["fry_pan", "Triply Fry Pan", "cook", 2200, 1999],
@@ -37,13 +37,13 @@ const RAW: Row[] = [
   ["Wayanad-Coffee-250", "Wayanad Coffee (250g)", "coffee", 299],
   ["Wayanad-Coffee-500", "Wayanad Coffee (500g)", "coffee", 599],
 
-  ["brass_cleaner", "Brass Cleaner", "wash", 130],
-  ["car_wash", "Car Wash", "wash", 120],
-  ["liquid_detergent", "Detergent Liquid", "wash", 135],
-  ["fabric_stiff", "Fabric Stiff", "wash", 85],
-  ["floor_cleaner", "Floor Cleaner", "wash", 125],
-  ["hand_wash", "Hand Wash", "wash", 110],
-  ["toilet_cleaner", "Toilet Cleaner", "wash", 120],
+  ["brass_cleaner", "Brass Cleaner", "wash", 155, 130],
+  ["car_wash", "Car Wash", "wash", 145, 120],
+  ["liquid_detergent", "Detergent Liquid", "wash", 155, 135],
+  ["fabric_stiff", "Fabric Stiff", "wash", 110, 85],
+  ["floor_cleaner", "Floor Cleaner", "wash", 145, 125],
+  ["hand_wash", "Hand Wash", "wash", 135, 110],
+  ["toilet_cleaner", "Toilet Cleaner", "wash", 140, 120],
 ];
 
 /**

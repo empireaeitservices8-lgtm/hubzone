@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { display, mono } from "@/lib/fonts";
 
 type Slide = {
-  image: string; // file in /public
-  position: string; // CSS object-position, keeps the subject in frame
+  image: string; // file in /public (for a video slide it is the poster shown until the video loads)
+  video?: string; // optional video in /public, plays muted in a loop as the slide background
+  duration?: number; // ms this slide stays on screen (defaults to INTERVAL)
+  position: string; // where the picture is anchored when it has to be cropped (desktop "cover" only)
   eyebrow: string;
   title: [string, string]; // two lines
   text: string;
@@ -17,11 +19,13 @@ type Slide = {
 
 const SLIDES: Slide[] = [
   {
-    image: "/hero2.png", // change to any image you want for the welcome slide
+    image: "/hero2.png", // poster / fallback image for the video
+    video: "/hero.mp4", // put your video in /public/hero.mp4 (or change the name here)
+    duration: 10000, // first slide stays longer so the video can play
     position: "50% 50%",
     eyebrow: "Welcome to the",
     title: ["Hybrid Universal", "Business Zone."],
-    text: "Five brands. One roof.",
+    text: "Multiple brands. One roof.",
     cta: { label: "Shop all brands", href: "/shop" },
     showLogo: true,
   },
@@ -29,9 +33,9 @@ const SLIDES: Slide[] = [
     image: "/ayurvedic.jpg",
     position: "70% 65%",
     eyebrow: "HubCare Products",
-    title: ["Ancient wisdom,", "for your skin."],
-    text: "Plant-based care, made the traditional way.",
-    cta: { label: "Shop cosmetics", href: "/shop" },
+    title: ["Rooted in Ayurveda,", "made for everyday care."],
+    text: "Hair oil, soap, facial pack, pain oil and more, made the traditional way.",
+    cta: { label: "Shop HubCare", href: "/shop?category=care" },
   },
   {
     image: "/hero_noir.jpeg", // add your HubNoir image to /public with this name (or change it here)
@@ -67,31 +71,80 @@ const SLIDES: Slide[] = [
   },
 ];
 
-const INTERVAL = 6000; // ms per slide
+const INTERVAL = 6000; // default ms per slide
 
-// Same green -> orange as the HUBZone logo (lightened a little so it reads on the dark photo)
+/**
+ * How the picture fits on big screens (lg and up):
+ *  "cover"   = fills the whole screen, edges may be cropped (most immersive)
+ *  "contain" = the WHOLE picture is always visible, with dark bars if the shapes differ
+ * On phones and tablets the whole picture is always shown (it sits in its own box above the text).
+ */
+const DESKTOP_FIT: "cover" | "contain" = "cover";
+
+// Same green -> orange as the HUBZone logo (lightened a little so it reads on the dark background)
 const LOGO_GRADIENT = "bg-gradient-to-r from-[#5cbf4f] to-[#f59a3c] bg-clip-text text-transparent";
-
-const GRAIN =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E\")";
 
 // Staggered fade-up used by each piece of text
 const reveal = (active: boolean, delay: string) =>
   `transition-all duration-700 ease-out ${active ? `translate-y-0 opacity-100 ${delay}` : "translate-y-5 opacity-0"}`;
 
+// Static strings so Tailwind can see them
+const FIT_CLASS =
+  DESKTOP_FIT === "cover"
+    ? "object-contain lg:object-cover lg:[object-position:var(--pos)]"
+    : "object-contain";
+
+/** Background video: plays only while its slide is showing. */
+function HeroVideo({
+  src,
+  poster,
+  position,
+  active,
+}: {
+  src: string;
+  poster: string;
+  position: string;
+  active: boolean;
+}) {
+  const ref = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    v.muted = true; // browsers only autoplay muted video
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (active && !reduceMotion) {
+      v.play().catch(() => {});
+    } else {
+      v.pause();
+    }
+  }, [active]);
+
+  return (
+    <video
+      ref={ref}
+      src={src}
+      poster={poster}
+      muted
+      loop
+      playsInline
+      autoPlay
+      preload="auto"
+      aria-hidden="true"
+      className={`absolute inset-0 h-full w-full ${FIT_CLASS}`}
+      style={{ ["--pos" as string]: position }}
+    />
+  );
+}
+
 export default function Hero() {
   const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
 
   const go = useCallback((i: number) => setIndex((i + SLIDES.length) % SLIDES.length), []);
 
   return (
     <section
-      className="relative isolate flex min-h-[100svh] overflow-hidden bg-[#07090b] text-[#f7f4f0]"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocus={() => setPaused(true)}
-      onBlur={() => setPaused(false)}
+      className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-[#07090b] text-[#f7f4f0] lg:block"
       role="region"
       aria-roledescription="carousel"
       aria-label="Featured"
@@ -99,41 +152,47 @@ export default function Hero() {
       <style>{`
         @keyframes hz-progress { from { transform: scaleX(0) } to { transform: scaleX(1) } }
         .hz-bar { transform-origin: left; animation: hz-progress ${INTERVAL}ms linear forwards }
-        @keyframes hz-zoom { from { transform: scale(1) } to { transform: scale(1.08) } }
-        .hz-zoom { animation: hz-zoom ${INTERVAL + 1500}ms ease-out forwards }
         @media (prefers-reduced-motion: reduce) {
           .hz-bar { animation: none; transform: scaleX(1) }
-          .hz-zoom { animation: none }
         }
       `}</style>
 
-      {/* ------------------------------ Backgrounds ------------------------------ */}
-      <div aria-hidden="true" className="absolute inset-0 -z-10">
+      {/* ------------------------------ Pictures ------------------------------ */}
+      {/* Phones/tablets: a normal box under the header, whole picture visible, text goes below it.
+          Desktop (lg+): full-screen background behind the text. */}
+      <div
+        aria-hidden="true"
+        className="relative mt-[88px] aspect-[4/3] w-full shrink-0 sm:mt-[104px] sm:aspect-[16/9] lg:absolute lg:inset-0 lg:mt-0 lg:aspect-auto"
+      >
         {SLIDES.map((s, i) => (
           <div
             key={s.image}
             className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${i === index ? "opacity-100" : "opacity-0"}`}
           >
-            <Image
-              src={s.image}
-              alt=""
-              fill
-              priority={i === 0}
-              sizes="100vw"
-              className={`object-cover ${i === index ? "hz-zoom" : ""}`}
-              style={{ objectPosition: s.position, animationPlayState: paused ? "paused" : "running" }}
-            />
+            {s.video ? (
+              <HeroVideo src={s.video} poster={s.image} position={s.position} active={i === index} />
+            ) : (
+              <Image
+                src={s.image}
+                alt=""
+                fill
+                priority={i === 0}
+                sizes="100vw"
+                className={FIT_CLASS}
+                style={{ ["--pos" as string]: s.position }}
+              />
+            )}
           </div>
         ))}
 
-        {/* Dark gradient on the text side + top/bottom, so text is always readable */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/10 sm:from-black/80 sm:via-black/45" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/40" />
-        <div className="absolute inset-0 opacity-[0.08] mix-blend-overlay" style={{ backgroundImage: GRAIN }} />
+        {/* Light shade only on desktop, only where text sits (left) + a little at the very top and bottom */}
+        <div className="absolute inset-0 hidden bg-gradient-to-r from-black/60 via-black/20 to-transparent lg:block" />
+        <div className="absolute inset-x-0 top-0 hidden h-36 bg-gradient-to-b from-black/35 to-transparent lg:block" />
+        <div className="absolute inset-x-0 bottom-0 hidden h-40 bg-gradient-to-t from-black/45 to-transparent lg:block" />
       </div>
 
       {/* -------------------------------- Content -------------------------------- */}
-      <div className="mx-auto flex w-full max-w-[1500px] flex-col justify-between px-5 pb-6 pt-24 sm:px-8 sm:pb-8 sm:pt-28 lg:pt-24">
+      <div className="relative z-10 mx-auto flex w-full max-w-[1500px] flex-1 flex-col justify-between px-5 pb-6 pt-7 sm:px-8 sm:pb-8 sm:pt-9 lg:min-h-[100svh] lg:flex-none lg:pt-24">
         {/* All slides share one grid cell so height never jumps between slides */}
         <div className="grid flex-1 items-center">
           {SLIDES.map((s, i) => {
@@ -147,7 +206,7 @@ export default function Hero() {
                 {/* LEFT: text */}
                 <div className="max-w-4xl">
                   <div className={`flex items-center gap-3 ${reveal(active, "delay-200")}`}>
-                    <p className={`${mono.className} text-[clamp(0.7rem,1vw,0.85rem)] uppercase tracking-[0.22em] text-white`}>
+                    <p className={`${mono.className} text-[clamp(0.7rem,1vw,0.85rem)] uppercase tracking-[0.22em] text-white [text-shadow:0_1px_14px_rgba(0,0,0,0.7)]`}>
                       {s.eyebrow}
                     </p>
                     <span className="h-px w-12 bg-white/40" />
@@ -156,10 +215,10 @@ export default function Hero() {
                   {/* First slide: title uses the logo colours. Other slides: cream text.
                       (drop-shadow instead of text-shadow, because text-shadow shows through gradient text) */}
                   <h1
-                    className={`${display.className} mt-5 text-[clamp(2.5rem,6vw,5.5rem)] font-bold leading-[0.98] tracking-[-0.05em] ${
+                    className={`${display.className} mt-4 text-[clamp(2.25rem,6vw,5.5rem)] font-bold leading-[0.98] tracking-[-0.05em] sm:mt-5 ${
                       s.showLogo
-                        ? `w-fit pb-[0.08em] drop-shadow-[0_2px_24px_rgba(0,0,0,0.5)] ${LOGO_GRADIENT}`
-                        : "text-[#f7f4f0] [text-shadow:0_2px_30px_rgba(0,0,0,0.55)]"
+                        ? `w-fit pb-[0.08em] drop-shadow-[0_2px_20px_rgba(0,0,0,0.7)] ${LOGO_GRADIENT}`
+                        : "text-[#f7f4f0] [text-shadow:0_2px_26px_rgba(0,0,0,0.7)]"
                     } ${reveal(active, "delay-300")}`}
                   >
                     {s.title[0]}
@@ -168,12 +227,12 @@ export default function Hero() {
                   </h1>
 
                   <p
-                    className={`${display.className} mt-5 max-w-md text-[clamp(1rem,1.3vw,1.2rem)] font-medium leading-snug tracking-[-0.01em] text-white [text-shadow:0_1px_18px_rgba(0,0,0,0.6)] ${reveal(active, "delay-500")}`}
+                    className={`${display.className} mt-4 max-w-md text-[clamp(1rem,1.3vw,1.2rem)] font-medium leading-snug tracking-[-0.01em] text-white [text-shadow:0_1px_16px_rgba(0,0,0,0.75)] sm:mt-5 ${reveal(active, "delay-500")}`}
                   >
                     {s.text}
                   </p>
 
-                  <div className={`mt-8 flex flex-wrap items-center gap-3 ${reveal(active, "delay-700")}`}>
+                  <div className={`mt-6 flex flex-wrap items-center gap-3 sm:mt-8 ${reveal(active, "delay-700")}`}>
                     <Link
                       href={s.cta.href}
                       tabIndex={active ? 0 : -1}
@@ -198,8 +257,7 @@ export default function Hero() {
                   <div
                     className={`order-first flex flex-col items-center text-center lg:order-none lg:pr-6 xl:pr-16 ${reveal(active, "delay-500")}`}
                   >
-                    <div className="grid h-36 w-36 place-items-center rounded-full bg-white shadow-[0_25px_70px_-10px_rgba(0,0,0,0.65)] ring-8 ring-white/20 sm:h-48 sm:w-48 lg:h-[min(20rem,42svh)] lg:w-[min(20rem,42svh)] xl:h-[min(24rem,46svh)] xl:w-[min(24rem,46svh)]">
-                      {/* logo-centered.png is the logo cropped to a tight square, so it sits dead centre */}
+                    <div className="grid h-28 w-28 place-items-center rounded-full bg-white shadow-[0_25px_70px_-10px_rgba(0,0,0,0.65)] ring-8 ring-white/20 sm:h-40 sm:w-40 lg:h-[min(20rem,42svh)] lg:w-[min(20rem,42svh)] xl:h-[min(24rem,46svh)] xl:w-[min(24rem,46svh)]">
                       <Image
                         src="/logo.png"
                         alt="HubZone logo"
@@ -209,10 +267,16 @@ export default function Hero() {
                         className="h-[94%] w-[94%] object-contain"
                       />
                     </div>
+
+                    {/* Caption in the exact logo colours: dark green "HUB" + orange gradient "Zone".
+                        Sits on a white pill, because the dark green would disappear on a dark background. */}
                     <p
-                      className={`${display.className} mt-4 text-[clamp(1.25rem,2.2vw,2.2rem)] font-bold tracking-[-0.02em] drop-shadow-[0_2px_18px_rgba(0,0,0,0.5)] ${LOGO_GRADIENT}`}
+                      className={`${display.className} mt-4 rounded-full bg-white px-6 py-2 text-[clamp(1.25rem,2.2vw,2.2rem)] font-extrabold leading-none tracking-[-0.02em] shadow-[0_10px_30px_-8px_rgba(0,0,0,0.5)]`}
                     >
-                      Hybrid Universal Business Zone
+                      <span className="text-[#1f5a1d]">HUB</span>
+                      <span className="ml-[0.12em] bg-gradient-to-r from-[#f7a23e] to-[#b5501a] bg-clip-text text-transparent">
+                        Zone
+                      </span>
                     </p>
                   </div>
                 )}
@@ -237,7 +301,7 @@ export default function Hero() {
                     <span
                       key={index}
                       className="hz-bar block h-full w-full rounded-full bg-white"
-                      style={{ animationPlayState: paused ? "paused" : "running" }}
+                      style={{ animationDuration: `${s.duration ?? INTERVAL}ms` }}
                       onAnimationEnd={() => go(index + 1)}
                     />
                   )}

@@ -62,8 +62,8 @@ const CHEVRONS: { label: string; img: string; bg: string }[] = [
 ];
 
 const BRANDS = [
-  { name: "HUBCARE", color: "#4caf50", tagline: "Ayurvedic care products", img: "/logos/hub_care.webp", items: ["Hair Oil", "Ayurveda Soap", "Evrly Anti-Dandruff Shampoo", "Pain Oil", "Mehandhi", "Neelayamari"] },
-  { name: "HUBNOIR", color: "#7e57c2", tagline: "Perfumes and Fragrances", img: "/logos/hub_noir.png", items: ["Perfumes", "Fragrances"] },
+  { name: "HUBCARE", color: "#4caf50", tagline: "Herbal Unisex Body Care", img: "/logos/hub_care.webp", items: ["Hair Oil", "Ayurveda Soap", "Evrly Anti-Dandruff Shampoo", "Pain Oil", "Mehandhi", "Neelayamari"] },
+  { name: "HUBNOIR", color: "#7e57c2", tagline: "Heritage Urban Bliss", img: "/logos/hub_noir.png", items: ["Perfumes", "Fragrances"] },
   { name: "HUBCOOK", color: "#f08a24", tagline: "Kitchen essentials", img: "/logos/hub_cook.webp", items: ["Dosa Tawa", "Fry Pan", "Bowl"] },
   { name: "HUBCOF", color: "#d4a24c", tagline: "Wayanad coffee", img: "/logos/hubcof.webp", items: ["Wayanad Coffee"] },
   { name: "HUBWASH", color: "#2fa8e8", tagline: "Cleaning products", img: "/logos/hubwash.webp", items: ["Liquid Detergent", "Car Wash", "Brass Cleaner", "Fabric Stiff", "Floor Cleaner", "Hand Wash", "Toilet Cleaner"] },
@@ -201,7 +201,7 @@ export default function AboutPage() {
       {/* BRANDS */}
       <section className="light" id="units">
         <div className="wrap">
-          <h2>Five brands for everyday life</h2>
+          <h2>Multiple brands for everyday life</h2>
           <div className="units">
             {BRANDS.map((b) => (
               <article className="unit" key={b.name} style={{ ["--c" as string]: b.color }}>
