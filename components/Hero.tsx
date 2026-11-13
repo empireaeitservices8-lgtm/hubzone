@@ -254,9 +254,9 @@ export default function Hero() {
                 {/* RIGHT: big circular logo (first slide only) */}
                 {s.showLogo && (
                   <div
-                    className={`order-first flex flex-col items-center text-center lg:order-none lg:pr-6 xl:pr-16 ${reveal(active, "delay-500")}`}
+                    className={`order-first flex flex-row items-center gap-3.5 sm:flex-col sm:gap-0 sm:text-center lg:order-none lg:pr-6 xl:pr-16 ${reveal(active, "delay-500")}`}
                   >
-                    <div className="grid h-24 w-24 place-items-center rounded-full bg-white shadow-[0_25px_70px_-10px_rgba(0,0,0,0.65)] ring-8 ring-white/20 sm:h-40 sm:w-40 lg:h-[min(20rem,42svh)] lg:w-[min(20rem,42svh)] xl:h-[min(24rem,46svh)] xl:w-[min(24rem,46svh)]">
+                    <div className="grid h-[76px] w-[76px] shrink-0 place-items-center rounded-full bg-white shadow-[0_18px_40px_-10px_rgba(0,0,0,0.65)] ring-4 ring-white/25 sm:h-40 sm:w-40 sm:shadow-[0_25px_70px_-10px_rgba(0,0,0,0.65)] sm:ring-8 sm:ring-white/20 lg:h-[min(20rem,42svh)] lg:w-[min(20rem,42svh)] xl:h-[min(24rem,46svh)] xl:w-[min(24rem,46svh)]">
                       <Image
                         src="/logo.png"
                         alt="HubZone logo"
@@ -270,7 +270,7 @@ export default function Hero() {
                     {/* Caption in the exact logo colours: dark green "HUB" + orange gradient "Zone".
                         Sits on a white pill, because the dark green would disappear on a dark background. */}
                     <p
-                      className={`${display.className} mt-3 rounded-full bg-white px-5 py-1.5 text-[clamp(1.1rem,2.2vw,2.2rem)] font-extrabold leading-none tracking-[-0.02em] shadow-[0_10px_30px_-8px_rgba(0,0,0,0.5)] sm:mt-4 sm:px-6 sm:py-2`}
+                      className={`${display.className} rounded-full bg-white px-5 py-2.5 text-[1.35rem] font-extrabold leading-none tracking-[-0.02em] shadow-[0_10px_30px_-8px_rgba(0,0,0,0.5)] sm:mt-4 sm:px-6 sm:py-2 sm:text-[clamp(1.25rem,2.2vw,2.2rem)]`}
                     >
                       <span className="text-[#1f5a1d]">HUB</span>
                       <span className="ml-[0.12em] bg-gradient-to-r from-[#f7a23e] to-[#b5501a] bg-clip-text text-transparent">
