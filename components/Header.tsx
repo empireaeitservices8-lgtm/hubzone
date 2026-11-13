@@ -280,58 +280,58 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
           <div aria-hidden="true" className={`absolute inset-x-0 top-0 h-[2px] ${BRAND_LINE}`} />
 
           <div className="mx-auto max-w-[1500px] px-8 pb-12 pt-10">
-            <div className="grid grid-cols-4 gap-10">
-              {SHOP_BRANDS.map((b, i) => (
-                <div
-                  key={b.id}
-                  style={{ transitionDelay: shopOpen ? `${60 + i * 60}ms` : "0ms" }}
-                  className={[
-                    "group/col transition-all duration-500",
-                    shopOpen ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0",
-                  ].join(" ")}
-                >
-                  {/* Column heading = brand, with its colour bar */}
-                  <Link
-                    href={`/shop?category=${b.id}`}
-                    tabIndex={shopOpen ? 0 : -1}
-                    className="block text-[15px] font-semibold text-white"
-                  >
-                    {b.name}
-                  </Link>
-                  <span
-                    className="mt-3 block h-[3px] w-8 rounded-full transition-all duration-500 group-hover/col:w-14"
-                    style={{ background: b.color }}
-                  />
+  <div className="grid grid-cols-5 items-start gap-x-6 xl:gap-x-10">
+    {SHOP_BRANDS.map((b, i) => (
+      <div
+        key={b.id}
+        style={{ transitionDelay: shopOpen ? `${60 + i * 60}ms` : "0ms" }}
+        className={[
+          "group/col min-w-0 transition-all duration-500",
+          shopOpen ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0",
+        ].join(" ")}
+      >
+        {/* Category heading with its colour bar */}
+        <Link
+          href={`/shop?category=${b.id}`}
+          tabIndex={shopOpen ? 0 : -1}
+          className="block text-[15px] font-semibold text-white"
+        >
+          {b.name}
+        </Link>
+        <span
+          className="mt-3 block h-[3px] w-8 rounded-full transition-all duration-500 group-hover/col:w-14"
+          style={{ background: b.color }}
+        />
 
-                  {/* Subcategories */}
-                  <ul className="mt-5 space-y-3">
-                    {b.items.map((p) => (
-                      <li key={p.id}>
-                        <Link
-                          href={`/shop/${p.id}`}
-                          tabIndex={shopOpen ? 0 : -1}
-                          className="text-[15px] text-white/65 transition-colors hover:text-white"
-                        >
-                          {p.name}
-                        </Link>
-                      </li>
-                    ))}
-                    <li>
-                      <Link
-                        href={`/shop?category=${b.id}`}
-                        tabIndex={shopOpen ? 0 : -1}
-                        className="inline-flex items-center gap-2 text-[15px] font-medium underline-offset-4 hover:underline"
-                        style={{ color: b.color }}
-                      >
-                        Shop all {b.name}
-                        <SmallArrow />
-                      </Link>
-                    </li>
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </div>
+        {/* Products */}
+        <ul className="mt-5 space-y-2.5">
+          {b.items.map((p) => (
+            <li key={p.id}>
+              <Link
+                href={`/shop/${p.id}`}
+                tabIndex={shopOpen ? 0 : -1}
+                className="block text-[14px] leading-snug text-white/65 transition-colors hover:text-white"
+              >
+                {p.name}
+              </Link>
+            </li>
+          ))}
+          <li className="pt-2">
+            <Link
+              href={`/shop?category=${b.id}`}
+              tabIndex={shopOpen ? 0 : -1}
+              className="inline-flex items-center gap-2 text-[14px] font-medium underline-offset-4 hover:underline"
+              style={{ color: b.color }}
+            >
+              Shop all
+              <SmallArrow />
+            </Link>
+          </li>
+        </ul>
+      </div>
+    ))}
+  </div>
+</div>
         </div>
       </header>
 
