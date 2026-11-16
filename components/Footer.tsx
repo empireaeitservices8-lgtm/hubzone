@@ -95,8 +95,13 @@ export default function Footer() {
               <span className={`${display.className} text-2xl font-extrabold tracking-tight text-white`}>HubZone</span>
             </Link>
             <p className="mt-4 max-w-sm leading-relaxed text-neutral-400 sm:mt-5 md:max-w-xl lg:max-w-sm">
-              Four everyday brands for care, cooking, coffee and cleaning, all backed by the same standard of quality.
+              Four everyday brands for care, perfumes, cooking, coffee and cleaning, all backed by the same standard of quality.
             </p>
+            <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-neutral-400">
+  <span>LIC NO: KL-02-118168</span>
+  <span aria-hidden="true" className="h-1 w-1 rounded-full bg-neutral-600" />
+  <span>Since 2018</span>
+</p>
             <a
               href={INSTAGRAM_URL}
               target="_blank"
@@ -166,14 +171,9 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-12 flex flex-col items-start justify-between gap-3 border-t border-white/10 pt-6 text-sm text-neutral-500 sm:mt-14 sm:flex-row sm:items-center">
-          <p>© 2026 Empire AE IT Services. All rights reserved.</p>
-          <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <span>LIC NO: KL-02-118168</span>
-            <span aria-hidden="true" className="h-1 w-1 rounded-full bg-neutral-600" />
-            <span>Since 2018</span>
-          </p>
-        </div>
+<div className="mt-12 border-t border-white/10 pt-6 text-sm text-neutral-500 sm:mt-14">
+  <p>© 2026 Empire AE IT Services. All rights reserved.</p>
+</div>
       </div>
     </footer>
   );

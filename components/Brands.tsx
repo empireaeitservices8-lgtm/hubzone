@@ -5,14 +5,16 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { display } from "@/lib/fonts";
 
+/* `id` must match the category ids in lib/products.ts (care, perfume, cook, coffee, wash),
+   because the button links to /brands/<id>. */
 const BRANDS = [
   {
     id: "care", name: "HubCare", tag: "Herbal Unisex Body Care",
     desc: "Herbal unisex products made with pure natural ingredients.",
     logo: "/logos/hub_care.webp", tint: "#e3f2df", ink: "#2e7d32", color: "#4caf50",
   },
-    {
-    id: "noir", name: "HubNoir", tag: "Heritage Urban Bliss",
+  {
+    id: "perfume", name: "HubNoir", tag: "Heritage Urban Bliss",
     desc: "Bold, long-lasting fragrances with rich notes, made for every mood and occasion.",
     logo: "/logos/hub_noir.png", tint: "#e9e1f3", ink: "#4a2a78", color: "#7e57c2",
   },
@@ -22,7 +24,7 @@ const BRANDS = [
     logo: "/logos/hub_cook.webp", tint: "#fde5cc", ink: "#c2570c", color: "#f08a24",
   },
   {
-    id: "cof", name: "HubCof", tag: "High Range Ultimate Beans Coffee",
+    id: "coffee", name: "HubCof", tag: "High Range Ultimate Beans Coffee",
     desc: "Zero chicory, no fillers. Just rich aroma and bold, authentic taste.",
     logo: "/logos/hubcof.webp", tint: "#f4e6c8", ink: "#8a5a14", color: "#d4a24c",
   },
@@ -79,15 +81,16 @@ function Logo({ b, i, active }: { b: Brand; i: number; active: boolean }) {
   );
 }
 
-function ShopButton({ b, focusable }: { b: Brand; focusable: boolean }) {
+/* Opens the brand page: /brands/care, /brands/perfume, /brands/cook, /brands/coffee, /brands/wash */
+function BrandButton({ b, focusable }: { b: Brand; focusable: boolean }) {
   return (
     <Link
-      href={`/shop?brand=${b.id}`}
+      href={`/brands/${b.id}`}
       tabIndex={focusable ? 0 : -1}
       onClick={(e) => e.stopPropagation()}
       className="group/btn inline-flex w-fit items-center gap-3 rounded-full bg-neutral-900 py-1.5 pl-5 pr-1.5 text-sm font-semibold text-white transition-transform hover:scale-[1.03] active:scale-95"
     >
-      Shop {b.name}
+      Explore {b.name}
       <span className="grid h-8 w-8 place-items-center rounded-full bg-white" style={{ color: b.ink }}>
         <span className="transition-transform duration-300 group-hover/btn:translate-x-0.5">
           <Arrow />
@@ -158,7 +161,7 @@ function Panel({ b, i, open, onOpen, onToggle }: { b: Brand; i: number; open: bo
               <div className={`pt-2 transition-opacity duration-500 ${open ? "opacity-100 delay-300" : "opacity-0"}`}>
                 <p className="text-[15px] leading-snug text-neutral-700">{b.desc}</p>
                 <div className="mt-4">
-                  <ShopButton b={b} focusable={open} />
+                  <BrandButton b={b} focusable={open} />
                 </div>
               </div>
             </div>
@@ -204,7 +207,7 @@ function Row({ b, i, open, onToggle }: { b: Brand; i: number; open: boolean; onT
             <span className="mb-3 block h-1 w-12 rounded-full" style={{ background: b.color }} />
             <p className="leading-relaxed text-neutral-700">{b.desc}</p>
             <div className="mt-4">
-              <ShopButton b={b} focusable={open} />
+              <BrandButton b={b} focusable={open} />
             </div>
           </div>
         </div>

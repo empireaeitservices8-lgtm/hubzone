@@ -144,8 +144,8 @@ export default function AboutPage() {
             <h2 className="left">About HUBZONE</h2>
             <p>
               HUBZONE is a leading manufacturer of innovative products. We specialize in a diverse range of goods,
-              including ayurvedic care, perfumes, kitchen essentials, Wayanad coffee, cleaning products and electronics
-              through our HUBTECH unit.
+              including ayurvedic care, perfumes, kitchen essentials, Wayanad coffee and cleaning products
+              through our HUBZONE unit.
             </p>
             <p>
               Leveraging our full-scale production capabilities, we transform raw materials into high-quality finished

@@ -4,17 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import ShopShell, { ShopTop, WRAP } from "@/components/ShopShell";
-import { TileArt } from "@/components/ProductCard";
-import { eff, getCategory, getProduct, inr, tileStyle, type Product } from "@/lib/products";
 
 type Mode = "login" | "register";
-type Values = { name: string; phone: string; id: string; email: string; password: string; terms: boolean };
+type Values = { name: string; phone: string; id: string; email: string; password: string };
 type Errors = Partial<Record<keyof Values, string>>;
 
-const EMPTY: Values = { name: "", phone: "", id: "", email: "", password: "", terms: false };
-
-/* products shown on the left panel */
-const SHOWCASE = ["Wayanad-Coffee-250", "hair_oil", "dosa_tawa", "liquid_detergent"];
+const EMPTY: Values = { name: "", phone: "", id: "", email: "", password: "" };
 
 const EMAIL = /^\S+@\S+\.\S+$/;
 const PHONE = /^[6-9]\d{9}$/;
@@ -41,7 +36,6 @@ function validate(mode: Mode, v: Values): Errors {
   if (!PHONE.test(v.phone)) e.phone = "Enter a 10-digit mobile number";
   if (!EMAIL.test(v.email)) e.email = "Enter a valid email address";
   if (v.password.length < 8) e.password = "Use at least 8 characters";
-  if (!v.terms) e.terms = "Please accept the terms to continue";
   return e;
 }
 
@@ -83,12 +77,11 @@ const CheckDot = () => (
   </svg>
 );
 
-/** Left panel: dark, with a small product collage. Desktop only. */
+/** Left panel: dark, with heading and perks. Desktop only. */
 function Showcase({ mode }: { mode: Mode }) {
-  const items = SHOWCASE.map((id) => getProduct(id)).filter(Boolean) as Product[];
   const perks = ["Track every order in one place", "Save addresses for faster checkout", "See offers before everyone else"];
   return (
-    <div className="relative hidden flex-col justify-between overflow-hidden bg-[#2a231e] p-12 text-[#f6e9d0] [background-image:radial-gradient(700px_420px_at_90%_0,#6b3a24_0,rgba(107,58,36,.35)_45%,transparent_80%)] lg:flex">
+    <div className="relative hidden flex-col justify-center overflow-hidden bg-[#2a231e] p-12 text-[#f6e9d0] [background-image:radial-gradient(700px_420px_at_90%_0,#6b3a24_0,rgba(107,58,36,.35)_45%,transparent_80%)] lg:flex">
       <div>
         <h2 className="font-[family-name:var(--font-serif)] text-[length:clamp(36px,3.4vw,52px)] font-medium leading-[1.05] tracking-[-0.01em]">
           {mode === "login" ? "Good to see you again." : "Your shelf, restocked."}
@@ -105,21 +98,6 @@ function Showcase({ mode }: { mode: Mode }) {
         </ul>
       </div>
 
-      <div className="mt-10 grid grid-cols-2 gap-4">
-        {items.map((p, i) => {
-          const c = getCategory(p.cat);
-          return (
-            <div key={p.id} className={`group ${i % 2 ? "translate-y-6" : ""}`}>
-              <div className="relative aspect-[4/3] overflow-hidden rounded-[18px] shadow-[0_18px_30px_-18px_rgba(0,0,0,0.6)]" style={tileStyle(c.tile)}>
-                <TileArt src={p.img} name={p.name} pad="9%" />
-              </div>
-              <p className="mt-2 truncate text-[13px] text-[#f6e9d0]/70">
-                {p.name} · {inr(eff(p))}
-              </p>
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }
@@ -137,8 +115,8 @@ export default function AuthPage({ mode }: { mode: Mode }) {
   const set =
     (k: keyof Values) =>
     (e: ChangeEvent<HTMLInputElement>) => {
-      let val: string | boolean = k === "terms" ? e.target.checked : e.target.value;
-      if (k === "phone") val = (val as string).replace(/\D/g, "").slice(0, 10);
+      let val: string = e.target.value;
+      if (k === "phone") val = val.replace(/\D/g, "").slice(0, 10);
       setV((c) => ({ ...c, [k]: val }));
       if (errors[k]) setErrors((c) => ({ ...c, [k]: undefined }));
       setFormError("");
@@ -274,30 +252,6 @@ export default function AuthPage({ mode }: { mode: Mode }) {
                     </div>
                   )}
                 </Field>
-
-                {!isLogin && (
-                  <div>
-                    <label className="flex cursor-pointer items-start gap-3 text-[14px] text-[#6a5c4f]">
-                      <input id="a-terms" type="checkbox" checked={v.terms} onChange={set("terms")} className="mt-0.5 h-[18px] w-[18px] shrink-0 accent-[#2a231e]" />
-                      <span>
-                        I agree to the{" "}
-                        <Link href="/terms" className="text-[#2a231e] underline underline-offset-4 hover:text-[#b8613a]">
-                          terms of sale
-                        </Link>{" "}
-                        and{" "}
-                        <Link href="/privacy" className="text-[#2a231e] underline underline-offset-4 hover:text-[#b8613a]">
-                          privacy policy
-                        </Link>
-                        .
-                      </span>
-                    </label>
-                    {errors.terms && (
-                      <span className="mt-1.5 block text-[13px] text-[#b8613a]" role="alert">
-                        {errors.terms}
-                      </span>
-                    )}
-                  </div>
-                )}
 
                 <button
                   type="submit"

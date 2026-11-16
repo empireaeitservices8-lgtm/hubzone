@@ -13,13 +13,13 @@ import { useCallback, useEffect, useState } from "react";
 
 const LOGO_SRC = "/logo.png"; // file lives in /public/logo.png
 const LOGO_ALT = "HubZone";
-const MEGA_BG = "#0e1a15"; // header + panel colour when Shop is open
+const MEGA_BG = "#0e1a15"; // header + panel colour when a menu is open
 
-/* Shop menu is built from your products file: one column per category, every product listed under it.
+/* Shop + Brands menus are built from your products file: one column per category.
    Add a product to RAW in the products file and it shows up here automatically. */
 const BRAND_LOOK: Record<CategoryId, { name: string; color: string }> = {
   care: { name: "HubCare", color: "#4caf50" },
-  perfume: {name: "HubNoir", color: "#bddbda"},
+  perfume: { name: "HubNoir", color: "#8574ed" },
   cook: { name: "HubCook", color: "#f08a24" },
   coffee: { name: "HubCof", color: "#d4a24c" },
   wash: { name: "HubWash", color: "#2fa8e8" },
@@ -32,12 +32,16 @@ const SHOP_BRANDS = CATEGORIES.map((c) => ({
   items: PRODUCTS.filter((p) => p.cat === c.id),
 }));
 
-// `color` is the hover colour of the big links in the mobile menu (taken from the four brands)
-const NAV_LINKS = [
-  { label: "Home", href: "/", color: "#4caf50", mega: false },
-  { label: "About Us", href: "/about", color: "#f08a24", mega: false },
-  { label: "Shop", href: "/shop", color: "#d4a24c", mega: true },
-  { label: "Contact Us", href: "/contact", color: "#2fa8e8", mega: false },
+type MenuId = "shop" | "brands" | null;
+
+// `color` is the hover colour of the big links in the mobile menu
+// `href: null` means the item is only a dropdown toggle (no page of its own)
+const NAV_LINKS: { label: string; href: string | null; color: string; menu: MenuId }[] = [
+  { label: "Home", href: "/", color: "#4caf50", menu: null },
+  { label: "Brands", href: null, color: "#bddbda", menu: "brands" },
+  { label: "About Us", href: "/about", color: "#f08a24", menu: null },
+  { label: "Shop", href: "/shop", color: "#d4a24c", menu: "shop" },
+  { label: "Contact Us", href: "/contact", color: "#2fa8e8", menu: null },
 ];
 
 type HeaderProps = {
@@ -83,24 +87,29 @@ const BRAND_LINE = "bg-[linear-gradient(90deg,#4caf50_0%,#d4a24c_35%,#f08a24_65%
 export default function Header({ cartCount = 0 }: HeaderProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false); // full-screen menu (phones/tablets)
-  const [shopOpen, setShopOpen] = useState(false); // desktop mega menu
-  const [mobileShop, setMobileShop] = useState(false); // mobile accordion (closed by default)
+  const [menu, setMenu] = useState<MenuId>(null); // desktop dropdown that is open
+  const [mobileOpen, setMobileOpen] = useState<MenuId>(null); // mobile accordion that is open (none by default)
   const [scrolled, setScrolled] = useState(false);
 
+  const shopOpen = menu === "shop";
+  const brandsOpen = menu === "brands";
+  const panelOpen = menu !== null;
+
   const close = useCallback(() => setOpen(false), []);
-  const onHero = !scrolled && !open && !shopOpen; // transparent + white text over the hero
-  const light = onHero || shopOpen || open; // white text/buttons over the hero or the coloured panel
-  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname?.startsWith(href));
+  const onHero = !scrolled && !open && !panelOpen; // transparent + white text over the hero
+  const light = onHero || panelOpen || open; // white text/buttons over the hero or the coloured panel
+  const isActive = (href: string | null) =>
+    !href ? false : href === "/" ? pathname === "/" : !!pathname?.startsWith(href);
 
   // Close menus when the page changes
   useEffect(() => {
-    setShopOpen(false);
+    setMenu(null);
     setOpen(false);
   }, [pathname]);
 
-  // Always start with the Shop accordion closed when the mobile menu is closed/reopened
+  // Always start with the accordions closed when the mobile menu is closed/reopened
   useEffect(() => {
-    if (!open) setMobileShop(false);
+    if (!open) setMobileOpen(null);
   }, [open]);
 
   // Add a soft shadow under the bar once the page scrolls
@@ -111,13 +120,13 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close the mega menu on Escape
+  // Close the desktop dropdowns on Escape
   useEffect(() => {
-    if (!shopOpen) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setShopOpen(false);
+    if (!panelOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMenu(null);
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [shopOpen]);
+  }, [panelOpen]);
 
   // Lock body scroll + close on Escape while the full-screen menu is open
   useEffect(() => {
@@ -136,11 +145,11 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
     <>
       {/* ------------------------------ Top bar ------------------------------ */}
       <header
-        onMouseLeave={() => setShopOpen(false)}
-        style={shopOpen ? { backgroundColor: MEGA_BG } : undefined}
+        onMouseLeave={() => setMenu(null)}
+        style={panelOpen ? { backgroundColor: MEGA_BG } : undefined}
         className={[
           "fixed inset-x-0 top-0 z-50 border-b transition-[background-color,border-color,box-shadow] duration-300",
-          shopOpen
+          panelOpen
             ? "border-white/10 text-white"
             : onHero
               ? "border-white/20 bg-transparent text-white"
@@ -149,47 +158,62 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                 : "border-black/10 bg-white/95 text-neutral-900 shadow-[0_10px_30px_-14px_rgba(0,0,0,0.25)] backdrop-blur",
         ].join(" ")}
       >
-<div className="mx-auto flex h-[88px] max-w-[1500px] items-center justify-between gap-4 px-5 sm:h-[104px] sm:px-8">
-           {/* Logo in a round white badge so it reads on any background */}
-<Link href="/" onClick={close} aria-label={`${LOGO_ALT} home`} className="flex shrink-0 items-center">
-  <span className="grid h-14 w-14 place-items-center rounded-full bg-white shadow-sm ring-1 ring-black/5 sm:h-[72px] sm:w-[72px] lg:h-20 lg:w-20">
-    <Image
-      src={LOGO_SRC}
-      alt={LOGO_ALT}
-      width={389}
-      height={389}
-      priority
-      className="h-[94%] w-[94%] object-contain"
-    />
-  </span>
-</Link>
+        <div className="mx-auto flex h-[88px] max-w-[1500px] items-center justify-between gap-4 px-5 sm:h-[104px] sm:px-8">
+          {/* Logo in a round white badge so it reads on any background */}
+          <Link href="/" onClick={close} aria-label={`${LOGO_ALT} home`} className="flex shrink-0 items-center">
+            <span className="grid h-14 w-14 place-items-center rounded-full bg-white shadow-sm ring-1 ring-black/5 sm:h-[72px] sm:w-[72px] lg:h-20 lg:w-20">
+              <Image
+                src={LOGO_SRC}
+                alt={LOGO_ALT}
+                width={389}
+                height={389}
+                priority
+                className="h-[94%] w-[94%] object-contain"
+              />
+            </span>
+          </Link>
 
           {/* Desktop nav */}
           <nav className="hidden flex-1 justify-end lg:flex" aria-label="Main">
             <ul className="flex items-center gap-8 xl:gap-12">
               {NAV_LINKS.map((l) => {
-                const active = isActive(l.href) || (l.mega && shopOpen);
+                const active = isActive(l.href) || (l.menu !== null && menu === l.menu);
+                const linkClass = [
+                  mono.className,
+                  "relative block py-2 text-[13px] uppercase transition-opacity duration-200 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-left after:bg-current after:transition-transform after:duration-300 hover:opacity-70 hover:after:scale-x-100",
+                  active ? "after:scale-x-100" : "after:scale-x-0",
+                ].join(" ");
+
                 return (
-                  <li key={l.href} onMouseEnter={() => setShopOpen(l.mega)} className="flex items-center gap-1">
-                    <Link
-                      href={l.href}
-                      aria-current={isActive(l.href) ? "page" : undefined}
-                      onFocus={() => setShopOpen(l.mega)}
-                      className={[
-                        mono.className,
-                        "relative block py-2 text-[13px] uppercase transition-opacity duration-200 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-left after:bg-current after:transition-transform after:duration-300 hover:opacity-70 hover:after:scale-x-100",
-                        active ? "after:scale-x-100" : "after:scale-x-0",
-                      ].join(" ")}
-                    >
-                      {l.label}
-                    </Link>
-                    {l.mega && (
+                  <li key={l.label} onMouseEnter={() => setMenu(l.menu)} className="flex items-center gap-1">
+                    {l.href ? (
+                      <Link
+                        href={l.href}
+                        aria-current={isActive(l.href) ? "page" : undefined}
+                        onFocus={() => setMenu(l.menu)}
+                        className={linkClass}
+                      >
+                        {l.label}
+                      </Link>
+                    ) : (
                       <button
                         type="button"
-                        onClick={() => setShopOpen((v) => !v)}
-                        aria-expanded={shopOpen}
-                        aria-controls="shop-menu"
-                        aria-label={shopOpen ? "Close shop categories" : "Open shop categories"}
+                        onClick={() => setMenu((m) => (m === l.menu ? null : l.menu))}
+                        onFocus={() => setMenu(l.menu)}
+                        aria-expanded={menu === l.menu}
+                        aria-controls={`${l.menu}-menu`}
+                        className={linkClass}
+                      >
+                        {l.label}
+                      </button>
+                    )}
+                    {l.menu && (
+                      <button
+                        type="button"
+                        onClick={() => setMenu((m) => (m === l.menu ? null : l.menu))}
+                        aria-expanded={menu === l.menu}
+                        aria-controls={`${l.menu}-menu`}
+                        aria-label={menu === l.menu ? `Close ${l.label} menu` : `Open ${l.label} menu`}
                         className={`grid h-6 w-6 place-items-center rounded-full transition-colors ${light ? "hover:bg-white/10" : "hover:bg-black/5"}`}
                       >
                         <Chevron />
@@ -242,7 +266,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
             <button
               type="button"
               onClick={() => {
-                setShopOpen(false);
+                setMenu(null);
                 setOpen((v) => !v);
               }}
               aria-expanded={open}
@@ -266,7 +290,49 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
           </div>
         </div>
 
-        {/* ------------------------- Desktop mega menu ------------------------- */}
+        {/* ------------------------- Desktop Brands menu ------------------------- */}
+        <div
+          id="brands-menu"
+          aria-hidden={!brandsOpen}
+          style={{ backgroundColor: MEGA_BG }}
+          className={[
+            "absolute inset-x-0 top-full hidden border-t border-white/10 text-white shadow-[0_40px_60px_-30px_rgba(0,0,0,0.6)] transition-all duration-300 ease-out lg:block",
+            brandsOpen ? "visible translate-y-0 opacity-100" : "invisible -translate-y-2 opacity-0",
+          ].join(" ")}
+        >
+          <div aria-hidden="true" className={`absolute inset-x-0 top-0 h-[2px] ${BRAND_LINE}`} />
+          <div className="mx-auto max-w-[1500px] px-8 pb-10 pt-8">
+            <ul className="grid grid-cols-5 gap-x-6 xl:gap-x-10">
+              {SHOP_BRANDS.map((b, i) => (
+                <li
+                  key={b.id}
+                  style={{ transitionDelay: brandsOpen ? `${60 + i * 60}ms` : "0ms" }}
+                  className={[
+                    "transition-all duration-500",
+                    brandsOpen ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0",
+                  ].join(" ")}
+                >
+                  <Link
+                    href={`/brands/${b.id}`}
+                    tabIndex={brandsOpen ? 0 : -1}
+                    className="group/b block"
+                  >
+                    <span className="block text-[15px] font-semibold uppercase tracking-wide text-white">
+                      {b.name}
+                    </span>
+                    <span
+                      className="mt-3 block h-[3px] w-8 rounded-full transition-all duration-500 group-hover/b:w-14"
+                      style={{ background: b.color }}
+                    />
+                  
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* ------------------------- Desktop Shop mega menu ------------------------- */}
         <div
           id="shop-menu"
           aria-hidden={!shopOpen}
@@ -280,58 +346,58 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
           <div aria-hidden="true" className={`absolute inset-x-0 top-0 h-[2px] ${BRAND_LINE}`} />
 
           <div className="mx-auto max-w-[1500px] px-8 pb-12 pt-10">
-  <div className="grid grid-cols-5 items-start gap-x-6 xl:gap-x-10">
-    {SHOP_BRANDS.map((b, i) => (
-      <div
-        key={b.id}
-        style={{ transitionDelay: shopOpen ? `${60 + i * 60}ms` : "0ms" }}
-        className={[
-          "group/col min-w-0 transition-all duration-500",
-          shopOpen ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0",
-        ].join(" ")}
-      >
-        {/* Category heading with its colour bar */}
-        <Link
-          href={`/shop?category=${b.id}`}
-          tabIndex={shopOpen ? 0 : -1}
-          className="block text-[15px] font-semibold text-white"
-        >
-          {b.name}
-        </Link>
-        <span
-          className="mt-3 block h-[3px] w-8 rounded-full transition-all duration-500 group-hover/col:w-14"
-          style={{ background: b.color }}
-        />
+            <div className="grid grid-cols-5 items-start gap-x-6 xl:gap-x-10">
+              {SHOP_BRANDS.map((b, i) => (
+                <div
+                  key={b.id}
+                  style={{ transitionDelay: shopOpen ? `${60 + i * 60}ms` : "0ms" }}
+                  className={[
+                    "group/col min-w-0 transition-all duration-500",
+                    shopOpen ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0",
+                  ].join(" ")}
+                >
+                  {/* Category heading with its colour bar */}
+                  <Link
+                    href={`/shop?category=${b.id}`}
+                    tabIndex={shopOpen ? 0 : -1}
+                    className="block text-[15px] font-semibold text-white"
+                  >
+                    {b.name}
+                  </Link>
+                  <span
+                    className="mt-3 block h-[3px] w-8 rounded-full transition-all duration-500 group-hover/col:w-14"
+                    style={{ background: b.color }}
+                  />
 
-        {/* Products */}
-        <ul className="mt-5 space-y-2.5">
-          {b.items.map((p) => (
-            <li key={p.id}>
-              <Link
-                href={`/shop/${p.id}`}
-                tabIndex={shopOpen ? 0 : -1}
-                className="block text-[14px] leading-snug text-white/65 transition-colors hover:text-white"
-              >
-                {p.name}
-              </Link>
-            </li>
-          ))}
-          <li className="pt-2">
-            <Link
-              href={`/shop?category=${b.id}`}
-              tabIndex={shopOpen ? 0 : -1}
-              className="inline-flex items-center gap-2 text-[14px] font-medium underline-offset-4 hover:underline"
-              style={{ color: b.color }}
-            >
-              Shop all
-              <SmallArrow />
-            </Link>
-          </li>
-        </ul>
-      </div>
-    ))}
-  </div>
-</div>
+                  {/* Products */}
+                  <ul className="mt-5 space-y-2.5">
+                    {b.items.map((p) => (
+                      <li key={p.id}>
+                        <Link
+                          href={`/shop/${p.id}`}
+                          tabIndex={shopOpen ? 0 : -1}
+                          className="block text-[14px] leading-snug text-white/65 transition-colors hover:text-white"
+                        >
+                          {p.name}
+                        </Link>
+                      </li>
+                    ))}
+                    <li className="pt-2">
+                      <Link
+                        href={`/shop?category=${b.id}`}
+                        tabIndex={shopOpen ? 0 : -1}
+                        className="inline-flex items-center gap-2 text-[14px] font-medium underline-offset-4 hover:underline"
+                        style={{ color: b.color }}
+                      >
+                        Shop all
+                        <SmallArrow />
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </header>
 
@@ -373,116 +439,158 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
           {/* Big links */}
           <nav aria-label="Menu" className="flex w-full flex-col">
             <p className={`${mono.className} mb-3 text-[12px] uppercase text-white/50`}>Menu</p>
-            {NAV_LINKS.map((l, i) => (
-              <div key={l.href} className="border-b border-white/10">
-                <div
-                  style={{ transitionDelay: open ? `${120 + i * 70}ms` : "0ms", ["--c" as string]: l.color }}
-                  className={[
-                    "flex items-center gap-3 transition-all duration-500",
-                    open ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
-                  ].join(" ")}
-                >
-                  <Link
-                    href={l.href}
-                    onClick={close}
-                    tabIndex={open ? 0 : -1}
-                    className={[
-                      mono.className,
-                      "group flex min-w-0 items-center gap-3 py-4 text-[clamp(1.125rem,5vw,1.5rem)] uppercase transition-colors hover:text-[color:var(--c)]",
-                      isActive(l.href) ? "text-[color:var(--c)]" : "text-white",
-                    ].join(" ")}
-                  >
-                    <span className="transition-transform duration-300 group-hover:translate-x-3">{l.label}</span>
-                    {!l.mega && (
-                      <span className="opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                        <ArrowIcon />
-                      </span>
-                    )}
-                  </Link>
+            {NAV_LINKS.map((l, i) => {
+              const expanded = l.menu !== null && mobileOpen === l.menu;
+              const toggle = () => setMobileOpen(expanded ? null : l.menu);
+              const rowClass = [
+                mono.className,
+                "group flex min-w-0 items-center gap-3 py-4 text-[clamp(1.125rem,5vw,1.5rem)] uppercase transition-colors hover:text-[color:var(--c)]",
+                isActive(l.href) ? "text-[color:var(--c)]" : "text-white",
+              ].join(" ");
 
-                  {l.mega && (
-                    <button
-                      type="button"
-                      onClick={() => setMobileShop((v) => !v)}
-                      aria-expanded={mobileShop}
-                      aria-controls="mobile-shop"
-                      aria-label={mobileShop ? "Hide shop categories" : "Show shop categories"}
-                      tabIndex={open ? 0 : -1}
-                      className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/25 text-white transition-colors hover:bg-white/10"
-                    >
-                      <span className={`transition-transform duration-300 ${mobileShop ? "rotate-180" : ""}`}>
-                        <Chevron size={18} />
-                      </span>
-                    </button>
-                  )}
-                </div>
-
-                {/* Shop accordion – collapsed by default, opens with the chevron */}
-                {l.mega && (
+              return (
+                <div key={l.label} className="border-b border-white/10">
                   <div
-                    id="mobile-shop"
-                    aria-hidden={!mobileShop}
+                    style={{ transitionDelay: open ? `${120 + i * 70}ms` : "0ms", ["--c" as string]: l.color }}
                     className={[
-                      "grid transition-[grid-template-rows,opacity] duration-500 ease-out",
-                      mobileShop ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+                      "flex items-center gap-3 transition-all duration-500",
+                      open ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
                     ].join(" ")}
                   >
-                    <div className="overflow-hidden">
-                      <div className="grid gap-8 pb-6 pt-5 sm:grid-cols-2">
-                        {SHOP_BRANDS.map((b) => (
-                          <div key={b.id}>
-                            <Link
-                              href={`/shop?category=${b.id}`}
-                              onClick={close}
-                              tabIndex={open && mobileShop ? 0 : -1}
-                              className="block text-[15px] font-semibold text-white"
-                            >
-                              {b.name}
-                            </Link>
-                            <span className="mt-2 block h-[3px] w-8 rounded-full" style={{ background: b.color }} />
-                            <ul className="mt-4 space-y-3">
-                              {b.items.map((p) => (
-                                <li key={p.id}>
-                                  <Link
-                                    href={`/shop/${p.id}`}
-                                    onClick={close}
-                                    tabIndex={open && mobileShop ? 0 : -1}
-                                    className="text-[15px] text-white/65 transition-colors hover:text-white"
-                                  >
-                                    {p.name}
-                                  </Link>
-                                </li>
-                              ))}
-                              <li>
-                                <Link
-                                  href={`/shop?category=${b.id}`}
-                                  onClick={close}
-                                  tabIndex={open && mobileShop ? 0 : -1}
-                                  className="inline-flex items-center gap-2 text-[15px] font-medium underline-offset-4 hover:underline"
-                                  style={{ color: b.color }}
-                                >
-                                  Shop all {b.name}
-                                  <SmallArrow />
-                                </Link>
-                              </li>
-                            </ul>
-                          </div>
-                        ))}
-                        <Link
-                          href="/shop"
-                          onClick={close}
-                          tabIndex={open && mobileShop ? 0 : -1}
-                          className="inline-flex items-center gap-2 px-1 text-[15px] font-semibold underline underline-offset-4 sm:col-span-2"
-                        >
-                          View all products
-                          <SmallArrow />
-                        </Link>
+                    {l.href ? (
+                      <Link href={l.href} onClick={close} tabIndex={open ? 0 : -1} className={rowClass}>
+                        <span className="transition-transform duration-300 group-hover:translate-x-3">{l.label}</span>
+                        {!l.menu && (
+                          <span className="opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                            <ArrowIcon />
+                          </span>
+                        )}
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={toggle}
+                        tabIndex={open ? 0 : -1}
+                        className={`${rowClass} flex-1 text-left`}
+                      >
+                        <span className="transition-transform duration-300 group-hover:translate-x-3">{l.label}</span>
+                      </button>
+                    )}
+
+                    {l.menu && (
+                      <button
+                        type="button"
+                        onClick={toggle}
+                        aria-expanded={expanded}
+                        aria-controls={`mobile-${l.menu}`}
+                        aria-label={expanded ? `Hide ${l.label}` : `Show ${l.label}`}
+                        tabIndex={open ? 0 : -1}
+                        className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/25 text-white transition-colors hover:bg-white/10"
+                      >
+                        <span className={`transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}>
+                          <Chevron size={18} />
+                        </span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Brands accordion */}
+                  {l.menu === "brands" && (
+                    <div
+                      id="mobile-brands"
+                      aria-hidden={!expanded}
+                      className={[
+                        "grid transition-[grid-template-rows,opacity] duration-500 ease-out",
+                        expanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+                      ].join(" ")}
+                    >
+                      <div className="overflow-hidden">
+                        <ul className="space-y-1 pb-6 pt-3">
+                          {SHOP_BRANDS.map((b) => (
+                            <li key={b.id}>
+                              <Link
+                                href={`/brands/${b.id}`}
+                                onClick={close}
+                                tabIndex={open && expanded ? 0 : -1}
+                                className="flex items-center gap-3 py-2.5 text-[15px] font-semibold uppercase tracking-wide text-white"
+                              >
+                                <span className="h-[3px] w-6 rounded-full" style={{ background: b.color }} />
+                                {b.name}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            ))}
+                  )}
+
+                  {/* Shop accordion – collapsed by default, opens with the chevron */}
+                  {l.menu === "shop" && (
+                    <div
+                      id="mobile-shop"
+                      aria-hidden={!expanded}
+                      className={[
+                        "grid transition-[grid-template-rows,opacity] duration-500 ease-out",
+                        expanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+                      ].join(" ")}
+                    >
+                      <div className="overflow-hidden">
+                        <div className="grid gap-8 pb-6 pt-5 sm:grid-cols-2">
+                          {SHOP_BRANDS.map((b) => (
+                            <div key={b.id}>
+                              <Link
+                                href={`/shop?category=${b.id}`}
+                                onClick={close}
+                                tabIndex={open && expanded ? 0 : -1}
+                                className="block text-[15px] font-semibold text-white"
+                              >
+                                {b.name}
+                              </Link>
+                              <span className="mt-2 block h-[3px] w-8 rounded-full" style={{ background: b.color }} />
+                              <ul className="mt-4 space-y-3">
+                                {b.items.map((p) => (
+                                  <li key={p.id}>
+                                    <Link
+                                      href={`/shop/${p.id}`}
+                                      onClick={close}
+                                      tabIndex={open && expanded ? 0 : -1}
+                                      className="text-[15px] text-white/65 transition-colors hover:text-white"
+                                    >
+                                      {p.name}
+                                    </Link>
+                                  </li>
+                                ))}
+                                <li>
+                                  <Link
+                                    href={`/shop?category=${b.id}`}
+                                    onClick={close}
+                                    tabIndex={open && expanded ? 0 : -1}
+                                    className="inline-flex items-center gap-2 text-[15px] font-medium underline-offset-4 hover:underline"
+                                    style={{ color: b.color }}
+                                  >
+                                    Shop all {b.name}
+                                    <SmallArrow />
+                                  </Link>
+                                </li>
+                              </ul>
+                            </div>
+                          ))}
+                          <Link
+                            href="/shop"
+                            onClick={close}
+                            tabIndex={open && expanded ? 0 : -1}
+                            className="inline-flex items-center gap-2 px-1 text-[15px] font-semibold underline underline-offset-4 sm:col-span-2"
+                          >
+                            View all products
+                            <SmallArrow />
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
 
             {/* Account row – phones only (Login / Sign up live in the bar from sm up) */}
             <div
