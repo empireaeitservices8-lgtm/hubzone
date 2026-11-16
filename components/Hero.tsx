@@ -80,8 +80,8 @@ const INTERVAL = 6000; // default ms per slide
  * MOBILE_FIT is for phones/tablets, DESKTOP_FIT for lg screens and up.
  * Text always sits on top of the picture.
  */
-const MOBILE_FIT: "cover" | "contain" = "cover";
-const DESKTOP_FIT: "cover" | "contain" = "cover";
+const MOBILE_FIT = "cover" as "cover" | "contain";
+const DESKTOP_FIT = "cover" as "cover" | "contain";
 
 // Same green -> orange as the HUBZone logo (lightened a little so it reads on the dark background)
 const LOGO_GRADIENT = "bg-gradient-to-r from-[#5cbf4f] to-[#f59a3c] bg-clip-text text-transparent";
@@ -95,17 +95,20 @@ const MOBILE_FIT_CLASS = MOBILE_FIT === "cover" ? "object-cover [object-position
 const DESKTOP_FIT_CLASS =
   DESKTOP_FIT === "cover" ? "lg:object-cover lg:[object-position:var(--pos)]" : "lg:object-contain";
 const FIT_CLASS = `${MOBILE_FIT_CLASS} ${DESKTOP_FIT_CLASS}`;
-
-/** Background video: plays only while its slide is showing. */
+// Video is never cropped on large screens: the whole frame is shown, edge to edge.
+// On phones/tablets it is also shown in full by default ("contain"); set to "cover" to fill the screen instead.
+const MOBILE_VIDEO_FIT = "contain" as "cover" | "contain";
+const VIDEO_MOBILE_CLASS =
+  MOBILE_VIDEO_FIT === "cover" ? "object-cover [object-position:var(--pos)]" : "object-contain";
+const VIDEO_FIT_CLASS = "object-cover object-center"; 
+// same as "fill" here, because the box ratio equals the video ratio/** Background video: plays only while its slide is showing. */
 function HeroVideo({
   src,
   poster,
-  position,
   active,
 }: {
   src: string;
   poster: string;
-  position: string;
   active: boolean;
 }) {
   const ref = useRef<HTMLVideoElement>(null);
@@ -116,7 +119,7 @@ function HeroVideo({
     v.muted = true; // browsers only autoplay muted video
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (active && !reduceMotion) {
-      v.play().catch(() => {});
+      v.play().catch(() => { });
     } else {
       v.pause();
     }
@@ -132,9 +135,9 @@ function HeroVideo({
       playsInline
       autoPlay
       preload="auto"
+
       aria-hidden="true"
-      className={`absolute inset-0 h-full w-full ${FIT_CLASS}`}
-      style={{ ["--pos" as string]: position }}
+      className={`absolute inset-0 h-full w-full ${VIDEO_FIT_CLASS}`}
     />
   );
 }
@@ -146,11 +149,11 @@ export default function Hero() {
 
   return (
     <section
-      className="relative isolate flex min-h-[100svh] overflow-hidden bg-[#07090b] text-[#f7f4f0]"
-      role="region"
-      aria-roledescription="carousel"
-      aria-label="Featured"
-    >
+  className="relative isolate flex w-full aspect-[464/832] lg:aspect-auto lg:h-[100svh] overflow-hidden bg-[#07090b] text-[#f7f4f0]"
+  role="region"
+  aria-roledescription="carousel"
+  aria-label="Featured"
+>
       <style>{`
         @keyframes hz-progress { from { transform: scaleX(0) } to { transform: scaleX(1) } }
         .hz-bar { transform-origin: left; animation: hz-progress ${INTERVAL}ms linear forwards }
@@ -167,8 +170,8 @@ export default function Hero() {
             className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${i === index ? "opacity-100" : "opacity-0"}`}
           >
             {s.video ? (
-              <HeroVideo src={s.video} poster={s.image} position={s.position} active={i === index} />
-            ) : (
+  <HeroVideo src={s.video} poster={s.image} active={i === index} />
+) : (
               <Image
                 src={s.image}
                 alt=""
@@ -214,11 +217,10 @@ export default function Hero() {
                   {/* First slide: title uses the logo colours. Other slides: cream text.
                       (drop-shadow instead of text-shadow, because text-shadow shows through gradient text) */}
                   <h1
-                    className={`${display.className} mt-4 text-[clamp(2.25rem,6vw,5.5rem)] font-bold leading-[0.98] tracking-[-0.05em] sm:mt-5 ${
-                      s.showLogo
+                    className={`${display.className} mt-4 text-[clamp(2.25rem,6vw,5.5rem)] font-bold leading-[0.98] tracking-[-0.05em] sm:mt-5 ${s.showLogo
                         ? `w-fit pb-[0.08em] drop-shadow-[0_2px_20px_rgba(0,0,0,0.7)] ${LOGO_GRADIENT}`
                         : "text-[#f7f4f0] [text-shadow:0_2px_26px_rgba(0,0,0,0.7)]"
-                    } ${reveal(active, "delay-300")}`}
+                      } ${reveal(active, "delay-300")}`}
                   >
                     {s.title[0]}
                     <br />
@@ -334,3 +336,4 @@ export default function Hero() {
     </section>
   );
 }
+
