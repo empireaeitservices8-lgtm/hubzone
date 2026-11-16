@@ -4,7 +4,7 @@ import Link from "next/link";
 import ShopShell, { ShopTop, WRAP } from "@/components/ShopShell";
 import { TileArt } from "@/components/ProductCard";
 import { useCart } from "@/lib/cart";
-import { eff, getCategory, getProduct, hasOffer, inr, tileStyle, whatsappLink, type Product } from "@/lib/products";
+import { eff, getCategory, getProduct, hasOffer, inr, tileStyle, type Product } from "@/lib/products";
 
 const TrashIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -30,13 +30,6 @@ export default function CartPage() {
   });
   const subtotal = items.reduce((s, it) => s + eff(it.p) * it.qty, 0);
   const savings = items.reduce((s, it) => s + (it.p.price - eff(it.p)) * it.qty, 0);
-
-  const message = [
-    "Hi HUBZONE, I'd like to order:",
-    ...items.map((it, i) => `${i + 1}. ${it.p.name} × ${it.qty} — ${inr(eff(it.p) * it.qty)}`),
-    "",
-    `Total: ${inr(subtotal)}`,
-  ].join("\n");
 
   return (
     <ShopShell>
@@ -138,10 +131,7 @@ export default function CartPage() {
                     <dd className="text-right font-medium text-[#2e7d32]">− {inr(savings)}</dd>
                   </div>
                 )}
-                <div className="flex justify-between gap-4 border-b border-[#2a231e]/10 py-[11px]">
-                  <dt className="text-[#6a5c4f]">Delivery</dt>
-                  <dd className="text-right font-medium">Confirmed on WhatsApp</dd>
-                </div>
+                
                 <div className="flex items-baseline justify-between gap-4 pt-[18px]">
                   <dt className="font-medium">Total</dt>
                   <dd className="font-[family-name:var(--font-serif)] text-4xl font-medium leading-none">{inr(subtotal)}</dd>
@@ -155,7 +145,7 @@ export default function CartPage() {
   <span>Proceed to checkout</span>
   <span className="rounded-full bg-[#f6e9d0]/15 px-4 py-[9px]">{inr(subtotal)}</span>
 </Link>
-              <p className="mt-3.5 text-[13.5px] text-[#6a5c4f]">We receive your full list in one message and confirm payment and delivery with you.</p>
+              <p className="mt-3.5 text-[13.5px] text-[#6a5c4f]">Choose cash on delivery or pay online at checkout.</p>
               <Link href="/shop" className="mt-5 inline-block text-[15px] font-medium underline underline-offset-4 transition-colors hover:text-[#b8613a]">
                 ← Continue shopping
               </Link>

@@ -70,13 +70,21 @@ async function ProductContent({ params }: Props) {
               <span className="font-[family-name:var(--font-serif)] text-[length:clamp(40px,5vw,60px)] font-medium leading-none">{inr(eff(p))}</span>
               {offer && <s className="text-xl text-[#6a5c4f] decoration-[1.5px]">{inr(p.price)}</s>}
             </div>
+
             <p className="mt-[18px] max-w-[46ch] text-lg leading-relaxed text-[#6a5c4f]">
+              <h2 className="font-[family-name:var(--font-serif)] text-2xl font-medium text-black">Description</h2>
+
               {p.desc ?? `${c.blurb}. Part of the ${c.brand} range from HUBZONE.`}
             </p>
+            {p.ingredients && (
+              <div className="mt-8">
+                <h2 className="font-[family-name:var(--font-serif)] text-2xl font-medium">Ingredients</h2>
+                <p className="mt-2 max-w-[52ch] text-[15.5px] leading-relaxed text-[#6a5c4f]">{p.ingredients}</p>
+              </div>
+            )}
 
             <OrderPanel id={p.id} name={p.name} unit={eff(p)} />
-            <p className="mt-3.5 text-[13.5px] text-[#6a5c4f]">Checkout is on WhatsApp: we confirm your order with you there.</p>
-
+            
             <dl className="mt-10 border-t border-[#2a231e]/20">
               {[
                 ["Brand", c.brand],

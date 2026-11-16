@@ -352,7 +352,6 @@ function PlaceButton({ busy, label, total }: { busy: boolean; label: string; tot
         <span>{busy ? "Placing your order…" : label}</span>
         <span className="rounded-full bg-[#f6e9d0]/15 px-4 py-[9px]">{inr(total)}</span>
       </button>
-      <p className="mt-3.5 text-[13.5px] text-[#6a5c4f]">By placing your order you agree to our terms of sale and delivery policy.</p>
     </>
   );
 }

@@ -16,13 +16,13 @@ export const CATEGORIES: { id: CategoryId; label: string; brand: string; tile: s
 type Row = [string, string, CategoryId, number, number?, string?];
 const RAW: Row[] = [
   ["hair_oil", "Hair Oil 100 ml", "care", 550, 499],
-    ["neelayamari_shampoo", "Neelayamari Shampoo 120 ml", "care", 329, 295],
+  ["neelayamari_shampoo", "Neelayamari Shampoo 120 ml", "care", 329, 295],
   ["pain_oil", "Pain Oil 100 ml", "care", 540, 495],
   ["ayurveda_soap", "Ayurveda Soap 100 gm", "care", 199, 175],
   ["neelayamari", "Neelayamari Podi 100 gm", "care", 355, 325],
-    ["mehandhi", "Mehandhi 100 gm", "care", 339, 310],
+  ["mehandhi", "Mehandhi 100 gm", "care", 339, 310],
   ["sandal_soap", "Natural Skin Care Soap 75 gm", "care", 110],
-    ["turmeric_soap", "Turmeric Soap 75 gm", "care", 99],
+  ["turmeric_soap", "Turmeric Soap 75 gm", "care", 99],
   ["mukhakanthi_soap", "Mughakanthi Soap 75 gm", "care", 110],
   ["mukhakanthi_powder", "Mukhakanthi Powder", "care", 320, 290],
 
@@ -47,6 +47,36 @@ const RAW: Row[] = [
 ];
 
 /**
+ * Description and ingredients per product, keyed by product id.
+ *
+ * - Add an entry only for products you have text for. Copy the wording from the product label.
+ * - `desc` shows under the price on the product page. Without it, the page shows the short brand line.
+ * - `ingredients` shows in its own "Ingredients" block. Without it, that block is hidden.
+ * - Both are optional, so you can fill them in product by product.
+ */
+const DETAILS: Record<string, { desc?: string; ingredients?: string }> = {
+  hair_oil: {
+    desc: "Vasabringamalakadi Herbal Hair Oil is a premium Ayurvedic blend designed to nourish the scalp, strengthen roots, and improve overall hair health. Made under GMP & ISO-certified standards, it delivers a natural solution for stronger, shinier, and healthier hair. The key benefits are ✔️Clears dandruff & improves scalp health ✔️Adds volume & revitalizes hair ✔️Repairs damaged hair and Enhances shine & luster",
+    ingredients: "Kushta (Saussurea lappa), Vasa (Adhatoda vasica), Yashti (Glycyrrhiza glabra), Marica (Piper nigrum), Pippali (Piper longum), Bhringaraja (Eclipta alba), Amalaki (Emblica officinalis)",
+  },
+  pain_oil: {
+    desc: "Herbal Pain Oil by Hub Care Group of Ayurveda is a specially formulated Ayurvedic blend designed to provide effective relief from joint and muscular discomfort naturally. Enriched with traditional Ayurvedic oils and herbal extracts, this formulation helps soothe pain, reduce inflammation, and improve mobility. Its fast-absorbing herbal composition supports muscle relaxation and promotes comfort in affected areas, making it an ideal solution for everyday body aches and stiffness. The key benefits are ✔️Helps relieve joint and muscular pain ✔️Supports reduction of inflammation and swelling ✔️Provides soothing comfort for sprains and strains ✔️Helps ease stiffness in the neck, back, and joints, Promotes relaxation of tired muscles ✔️Improves mobility and flexibility with regular use",
+    ingredients: "This herbal pain oil contains a powerful blend of Ayurvedic ingredients known for their pain-relieving and soothing properties: Mahanarayana Thailam – 8 ml – Traditionally used to relieve joint and muscle pain while improving flexibility, Kottamchukkadi Thailam – 5 ml – Helps reduce inflammation and supports relief from stiffness and swelling, Thushka – 0.5 ml – Provides soothing support for muscular discomfort, Karpoora (Camphor) – 0.5 ml – Gives a cooling sensation and helps ease pain and inflammation, Eucalyptus Oil – 0.5% – Refreshes and relaxes muscles while improving circulation, Lemongrass Oil – 0.5% – Helps calm soreness and provides a soothing aromatic effect",
+  },
+  neelayamari: {
+    desc: "Natural Ayurvedic herbal powder made from Neelayamari for complete hair care support. The key benefits are ✔️ Supports healthy hair growth ✔️ Helps reduce hair fall ✔️ Helps control dandruff ✔️ Nourishes scalp and hair roots ✔️ Supports stronger and healthier hair",
+      },
+      mehandhi: {
+    desc: "HUB Care Group Mylanchi Powder is a natural herbal hair care powder prepared from quality Mylanchi (Henna) ingredients. Traditionally used for hair nourishment and scalp care, this herbal powder helps maintain healthier-looking hair while providing a natural conditioning effect. Its fine texture makes it easy to mix and apply, making it a convenient addition to your regular hair care routine.",
+     },
+     ayurveda_soap: {
+    desc: "HUBCARE Ayurveda Soap is a traditional herbal soap crafted with natural Ayurvedic ingredients for gentle cleansing and daily skin care. Made with a blend of herbs and natural extracts, it helps refresh and nourish the skin while maintaining cleanliness.",
+    ingredients: "Coconut Oil, Coconut Cake, Turmeric, Ramacham, Green Gram, Karchura, Chitalam,Elaneergam, Water",
+  },
+
+};
+
+/**
  * Photos per product, keyed by product id. Files live in /public/products/.
  *
  * - List ONLY the products that need something other than the default.
@@ -62,13 +92,14 @@ const IMAGES: Record<string, string[]> = {
   hair_oil: ["/products/hair_oil.jpeg", "/products/hair_oil2.jpeg"],
   ayurveda_soap: ["/products/ayurveda_soap.jpeg"],
   mehandhi: ["/products/mehandhi.jpeg"],
-  neelayamari: ["/products/neelayamari.jpeg"], pain_oil: ["/products/pain_oil.jpeg"],
+  neelayamari: ["/products/neelayamari.jpeg"],
+  pain_oil: ["/products/pain_oil.jpeg"],
   mukhakanthi_powder: ["/products/mukhakanthi_powder.jpeg", "/products/mukhakanthi2.jpeg"],
   mukhakanthi_soap: ["/products/mukhakanthi_soap.jpeg", "/products/mukhakanthi_soap2.jpeg"],
   neelayamari_shampoo: ["/products/neelayamari_shampoo.jpeg", "/products/neelayamari_shampoo2.jpeg"],
   sandal_soap: ["/products/sandal_soap.jpeg", "/products/sandal_soap2.jpeg"],
   turmeric_soap: ["/products/turmeric_soap.jpeg", "/products/turmeric_soap2.jpeg"],
-    perfumes: ["/products/perfumes.webp", "/products/perfumes2.jpeg"],
+  perfumes: ["/products/perfumes.webp", "/products/perfumes2.jpeg"],
 
   // Example: main image is a jpg instead of webp (single image)
   // dosa_tawa: ["/products/dosa_tawa.jpg"],
@@ -84,6 +115,7 @@ export type Product = {
   price: number;
   offer?: number;
   desc?: string;
+  ingredients?: string;
   sub?: string;
   img: string; // main image (always the first of `images`)
   images?: string[]; // all images, only set when a product has more than the default
@@ -112,13 +144,15 @@ export const SUBCATEGORIES: { id: string; label: string; cat: CategoryId; ids: s
 
 export const PRODUCTS: Product[] = RAW.map(([id, name, cat, price, offer, desc]) => {
   const custom = IMAGES[id];
+  const d = DETAILS[id];
   return {
     id,
     name,
     cat,
     price,
     offer,
-    desc,
+    desc: d?.desc ?? desc,
+    ingredients: d?.ingredients,
     sub: SUBCATEGORIES.find((s) => s.ids.includes(id))?.id,
     img: custom?.[0] ?? `/products/${id}.webp`,
     images: custom && custom.length ? custom : undefined,
