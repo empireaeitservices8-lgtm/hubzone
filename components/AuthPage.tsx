@@ -243,13 +243,6 @@ function AuthContent({ mode }: { mode: Mode }) {
                 <Field
                   label="Password"
                   error={errors.password}
-                  aside={
-                    isLogin && (
-                      <Link href="/forgot-password" className="text-[13px] text-[#6a5c4f] underline underline-offset-4 transition-colors hover:text-[#b8613a]">
-                        Forgot password?
-                      </Link>
-                    )
-                  }
                 >
                   <div className="relative">
                     <input
