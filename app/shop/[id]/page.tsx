@@ -71,11 +71,10 @@ async function ProductContent({ params }: Props) {
               {offer && <s className="text-xl text-[#6a5c4f] decoration-[1.5px]">{inr(p.price)}</s>}
             </div>
 
-            <p className="mt-[18px] max-w-[46ch] text-lg leading-relaxed text-[#6a5c4f]">
-              <h2 className="font-[family-name:var(--font-serif)] text-2xl font-medium text-black">Description</h2>
-
-              {p.desc ?? `${c.blurb}. Part of the ${c.brand} range from HUBZONE.`}
-            </p>
+           <h2 className="mt-[18px] font-[family-name:var(--font-serif)] text-2xl font-medium text-black">Description</h2>
+<p className="mt-2 max-w-[52ch] text-lg leading-relaxed text-[#6a5c4f]">
+  {p.desc ?? `${c.blurb}. Part of the ${c.brand} range from HUBZONE.`}
+</p>
             {p.ingredients && (
               <div className="mt-8">
                 <h2 className="font-[family-name:var(--font-serif)] text-2xl font-medium">Ingredients</h2>
