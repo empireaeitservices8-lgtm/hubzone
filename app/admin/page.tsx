@@ -6,7 +6,7 @@ import { useEffect, useState, type FormEvent, type ChangeEvent } from "react";
 import ShopShell, { ShopTop, WRAP } from "@/components/ShopShell";
 import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
-import { inr } from "@/lib/products";
+import { inr, setLiveProducts, sortProducts } from "@/lib/products";
 import { toast } from "sonner";
 
 type TabId = "overview" | "products" | "orders" | "users" | "reviews" | "profile";
@@ -118,6 +118,10 @@ export default function AdminPage() {
   const [prodSearch, setProdSearch] = useState("");
   const [orderFilter, setOrderFilter] = useState("all");
 
+  // Product Pagination
+  const [prodPage, setProdPage] = useState(1);
+  const [prodPerPage, setProdPerPage] = useState(8);
+
   // Admin profile form
   const [adminName, setAdminName] = useState("");
   const [adminPhone, setAdminPhone] = useState("");
@@ -136,6 +140,9 @@ export default function AdminPage() {
         api.reviews.getAllAdmin(),
       ]);
       setProducts(pRes || []);
+      if (Array.isArray(pRes)) {
+        setLiveProducts(pRes as any);
+      }
       setOrders(oRes?.orders || []);
       setUsers(uRes?.users || []);
       setReviews(rRes?.reviews || []);
@@ -249,6 +256,9 @@ export default function AdminPage() {
 
       setShowProductModal(false);
       await loadAll();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("hubzone_products_updated"));
+      }
     } catch (err: any) {
       toast.error(err.message || "Failed to save product.");
     } finally {
@@ -262,6 +272,9 @@ export default function AdminPage() {
       await api.products.delete(id);
       flashMessage(`Product "${name}" deleted.`);
       await loadAll();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("hubzone_products_updated"));
+      }
     } catch (err: any) {
       toast.error(err.message || "Failed to delete product.");
     }
@@ -273,6 +286,9 @@ export default function AdminPage() {
       await api.products.update(p.id, { status: newStatus });
       flashMessage(`Stock status updated for ${p.name}`);
       await loadAll();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("hubzone_products_updated"));
+      }
     } catch (err: any) {
       toast.error(err.message || "Failed to update stock status.");
     }
@@ -381,12 +397,19 @@ export default function AdminPage() {
   }
 
   // Filtered lists
-  const filteredProducts = products.filter(
-    (p) =>
-      p.name.toLowerCase().includes(prodSearch.toLowerCase()) ||
-      p.cat.toLowerCase().includes(prodSearch.toLowerCase()) ||
-      p.id.toLowerCase().includes(prodSearch.toLowerCase())
+  const filteredProducts = sortProducts(
+    products.filter(
+      (p) =>
+        p.name.toLowerCase().includes(prodSearch.toLowerCase()) ||
+        p.cat.toLowerCase().includes(prodSearch.toLowerCase()) ||
+        p.id.toLowerCase().includes(prodSearch.toLowerCase())
+    )
   );
+
+  const totalProdPages = Math.max(1, Math.ceil(filteredProducts.length / prodPerPage));
+  const currentProdPage = Math.min(prodPage, totalProdPages);
+  const startProdIdx = (currentProdPage - 1) * prodPerPage;
+  const paginatedProducts = filteredProducts.slice(startProdIdx, startProdIdx + prodPerPage);
 
   const filteredOrders = orders.filter(
     (o) => orderFilter === "all" || o.orderStatus === orderFilter
@@ -572,7 +595,10 @@ export default function AdminPage() {
                   type="text"
                   placeholder="Search products by name or category..."
                   value={prodSearch}
-                  onChange={(e) => setProdSearch(e.target.value)}
+                  onChange={(e) => {
+                    setProdSearch(e.target.value);
+                    setProdPage(1);
+                  }}
                   className={inputCls}
                 />
               </div>
@@ -598,60 +624,150 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#2a231e]/10">
-                  {filteredProducts.map((p) => (
-                    <tr key={p.id} className="hover:bg-neutral-50/70 transition">
-                      <td className="px-6 py-4 flex items-center gap-3">
-                        <img
-                          src={p.img}
-                          alt={p.name}
-                          className="h-12 w-12 rounded-lg object-contain bg-[#fbf6ea] p-1 border border-[#2a231e]/10"
-                        />
-                        <div>
-                          <Link href={`/shop/${p.id}`} className="font-semibold text-[#2a231e] hover:underline">
-                            {p.name}
-                          </Link>
-                          <span className="block text-xs text-[#6a5c4f]">ID: {p.id}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 uppercase text-xs font-medium text-[#6a5c4f]">
-                        {p.cat}
-                      </td>
-                      <td className="px-4 py-4 font-medium text-[#2a231e]">
-                        {inr(p.price)}
-                      </td>
-                      <td className="px-4 py-4 text-[#2e7d32] font-semibold">
-                        {p.offer ? inr(p.offer) : "—"}
-                      </td>
-                      <td className="px-4 py-4">
-                        <button
-                          onClick={() => handleToggleStock(p)}
-                          className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider transition ${
-                            p.status === "in_stock"
-                              ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
-                              : "bg-rose-100 text-rose-800 hover:bg-rose-200"
-                          }`}
-                        >
-                          {p.status === "in_stock" ? "In Stock" : "Out of Stock"}
-                        </button>
-                      </td>
-                      <td className="px-6 py-4 text-right space-x-2">
-                        <button
-                          onClick={() => handleOpenEditProduct(p)}
-                          className="rounded-full border border-[#2a231e]/20 px-3.5 py-1 text-xs font-medium uppercase text-[#2a231e] hover:bg-[#2a231e] hover:text-white transition"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteProduct(p.id, p.name)}
-                          className="rounded-full border border-red-200 px-3.5 py-1 text-xs font-medium uppercase text-red-600 hover:bg-red-50 transition"
-                        >
-                          Delete
-                        </button>
+                  {filteredProducts.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-10 text-center text-[#6a5c4f]">
+                        No products found {prodSearch ? `matching "${prodSearch}"` : ""}.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    paginatedProducts.map((p) => (
+                      <tr key={p.id} className="hover:bg-neutral-50/70 transition">
+                        <td className="px-6 py-4 flex items-center gap-3">
+                          <img
+                            src={p.img}
+                            alt={p.name}
+                            className="h-12 w-12 rounded-lg object-contain bg-[#fbf6ea] p-1 border border-[#2a231e]/10"
+                          />
+                          <div>
+                            <Link href={`/shop/${p.id}`} className="font-semibold text-[#2a231e] hover:underline">
+                              {p.name}
+                            </Link>
+                            <span className="block text-xs text-[#6a5c4f]">ID: {p.id}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 uppercase text-xs font-medium text-[#6a5c4f]">
+                          {p.cat}
+                        </td>
+                        <td className="px-4 py-4 font-medium text-[#2a231e]">
+                          {inr(p.price)}
+                        </td>
+                        <td className="px-4 py-4 text-[#2e7d32] font-semibold">
+                          {p.offer ? inr(p.offer) : "—"}
+                        </td>
+                        <td className="px-4 py-4">
+                          <button
+                            onClick={() => handleToggleStock(p)}
+                            className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider transition ${
+                              p.status === "in_stock"
+                                ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
+                                : "bg-rose-100 text-rose-800 hover:bg-rose-200"
+                            }`}
+                          >
+                            {p.status === "in_stock" ? "In Stock" : "Out of Stock"}
+                          </button>
+                        </td>
+                        <td className="px-6 py-4 text-right space-x-2">
+                          <button
+                            onClick={() => handleOpenEditProduct(p)}
+                            className="rounded-full border border-[#2a231e]/20 px-3.5 py-1 text-xs font-medium uppercase text-[#2a231e] hover:bg-[#2a231e] hover:text-white transition"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteProduct(p.id, p.name)}
+                            className="rounded-full border border-red-200 px-3.5 py-1 text-xs font-medium uppercase text-red-600 hover:bg-red-50 transition"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
+
+              {/* Pagination Controls */}
+              <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-4 border-t border-[#2a231e]/10 bg-[#fbf6ea]/40 text-xs text-[#6a5c4f]">
+                <div className="flex items-center gap-3">
+                  <span>
+                    {filteredProducts.length === 0
+                      ? "Showing 0 products"
+                      : `Showing ${startProdIdx + 1}–${Math.min(startProdIdx + prodPerPage, filteredProducts.length)} of ${filteredProducts.length} products`}
+                  </span>
+                  <div className="flex items-center gap-1.5 ml-2">
+                    <span>Per page:</span>
+                    <select
+                      value={prodPerPage}
+                      onChange={(e) => {
+                        setProdPerPage(Number(e.target.value));
+                        setProdPage(1);
+                      }}
+                      className="rounded-lg border border-[#2a231e]/20 bg-white px-2 py-1 text-xs text-[#2a231e] outline-none"
+                    >
+                      <option value={5}>5</option>
+                      <option value={8}>8</option>
+                      <option value={12}>12</option>
+                      <option value={20}>20</option>
+                      <option value={50}>50</option>
+                    </select>
+                  </div>
+                </div>
+
+                {totalProdPages > 1 && (
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setProdPage((p) => Math.max(1, p - 1))}
+                      disabled={currentProdPage === 1}
+                      className="rounded-lg border border-[#2a231e]/20 bg-white px-3 py-1.5 font-medium text-[#2a231e] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-neutral-50 transition"
+                    >
+                      Previous
+                    </button>
+
+                    {Array.from({ length: totalProdPages }, (_, i) => i + 1).map((pNum) => {
+                      if (
+                        totalProdPages > 7 &&
+                        pNum !== 1 &&
+                        pNum !== totalProdPages &&
+                        Math.abs(pNum - currentProdPage) > 1
+                      ) {
+                        if (pNum === 2 || pNum === totalProdPages - 1) {
+                          return (
+                            <span key={`dots-${pNum}`} className="px-1 text-neutral-400">
+                              …
+                            </span>
+                          );
+                        }
+                        return null;
+                      }
+                      return (
+                        <button
+                          key={pNum}
+                          type="button"
+                          onClick={() => setProdPage(pNum)}
+                          className={`min-w-8 h-8 rounded-lg text-xs font-semibold transition ${
+                            pNum === currentProdPage
+                              ? "bg-[#2a231e] text-[#f6e9d0]"
+                              : "border border-[#2a231e]/20 bg-white text-[#2a231e] hover:bg-neutral-50"
+                          }`}
+                        >
+                          {pNum}
+                        </button>
+                      );
+                    })}
+
+                    <button
+                      type="button"
+                      onClick={() => setProdPage((p) => Math.min(totalProdPages, p + 1))}
+                      disabled={currentProdPage === totalProdPages}
+                      className="rounded-lg border border-[#2a231e]/20 bg-white px-3 py-1.5 font-medium text-[#2a231e] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-neutral-50 transition"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}

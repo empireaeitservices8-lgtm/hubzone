@@ -6,7 +6,7 @@ const BRANDS = [
   { id: "care", name: "HubCare", color: "#4caf50" },
   { id: "perfume", name: "HubNoir", color: "#955ce0" },
   { id: "cook", name: "HubCook", color: "#f08a24" },
-  { id: "cof", name: "HubCof", color: "#d4a24c" },
+  { id: "coffee", name: "HubCof", color: "#d4a24c" },
   { id: "wash", name: "HubWash", color: "#2fa8e8" },
 ];
 
@@ -135,7 +135,7 @@ export default function Footer() {
             <ul>
               {BRANDS.map((b) => (
                 <li key={b.id}>
-                  <Link href={`/shop?brand=${b.id}`} className="group inline-flex items-center gap-2.5 py-1.5 transition-colors hover:text-white">
+                  <Link href={`/brands/${b.id}`} className="group inline-flex items-center gap-2.5 py-1.5 transition-colors hover:text-white">
                     <span className="h-2 w-2 shrink-0 rounded-full transition-transform duration-300 group-hover:scale-150" style={{ background: b.color }} />
                     {b.name}
                   </Link>

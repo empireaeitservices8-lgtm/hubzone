@@ -34,6 +34,46 @@ function formatProduct(p) {
     };
 }
 
+// Canonical ordering of products requested by store owner
+const CANONICAL_PRODUCT_IDS = [
+    // HubCare
+    'hair_oil',
+    'neelayamari_shampoo',
+    'pain_oil',
+    'ayurveda_soap',
+    'neelayamari',
+    'mehandhi',
+    'sandal_soap',
+    'turmeric_soap',
+    'mukhakanthi_soap',
+    'mukhakanthi_powder',
+
+    // HubNoir
+    'perfumes',
+    'fragrances',
+
+    // HubCook
+    'dosa_tawa',
+    'fry_pan',
+    'bowl',
+
+    // HubCof
+    'Wayanad-Coffee-125',
+    'Wayanad-Coffee-250',
+    'Wayanad-Coffee-500',
+
+    // HubWash
+    'brass_cleaner',
+    'car_wash',
+    'liquid_detergent',
+    'fabric_stiff',
+    'floor_cleaner',
+    'hand_wash',
+    'toilet_cleaner'
+];
+
+const CANONICAL_ID_CASES = CANONICAL_PRODUCT_IDS.map((pid, idx) => `WHEN '${pid}' THEN ${idx + 1}`).join(' ');
+
 // Get all products
 exports.getAllProductsController = async (req, res) => {
     try {
@@ -64,7 +104,20 @@ exports.getAllProductsController = async (req, res) => {
             params.push(searchTerm, searchTerm, searchTerm, searchTerm);
         }
 
-        query += " ORDER BY created_at ASC";
+        query += ` ORDER BY 
+            CASE cat 
+                WHEN 'care' THEN 1 
+                WHEN 'perfume' THEN 2 
+                WHEN 'cook' THEN 3 
+                WHEN 'coffee' THEN 4 
+                WHEN 'wash' THEN 5 
+                ELSE 6 
+            END, 
+            CASE id 
+                ${CANONICAL_ID_CASES} 
+                ELSE 100 
+            END, 
+            created_at ASC`;
 
         const [rows] = await pool.query(query, params);
         const formatted = rows.map(formatProduct);

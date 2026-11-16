@@ -4,10 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { mono } from "@/lib/fonts";
-import { CATEGORIES, PRODUCTS, type CategoryId } from "@/lib/products"; // adjust the path to where your products file lives
-import { useCallback, useEffect, useState } from "react";
+import { CATEGORIES, PRODUCTS, getLiveProducts, setLiveProducts, sortProducts, type CategoryId, type Product } from "@/lib/products"; // adjust the path to where your products file lives
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useCart } from "@/lib/cart";
+import { api } from "@/lib/api";
 import { toast } from "sonner";
 
 /* -------------------------------------------------------------------------- */
@@ -27,13 +28,6 @@ const BRAND_LOOK: Record<CategoryId, { name: string; color: string }> = {
   coffee: { name: "HubCof", color: "#d4a24c" },
   wash: { name: "HubWash", color: "#2fa8e8" },
 };
-
-const SHOP_BRANDS = CATEGORIES.map((c) => ({
-  id: c.id,
-  name: BRAND_LOOK[c.id].name,
-  color: BRAND_LOOK[c.id].color,
-  items: PRODUCTS.filter((p) => p.cat === c.id),
-}));
 
 type MenuId = "shop" | "brands" | null;
 
@@ -98,6 +92,44 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
   const [menu, setMenu] = useState<MenuId>(null); // desktop dropdown that is open
   const [mobileOpen, setMobileOpen] = useState<MenuId>(null); // mobile accordion that is open (none by default)
   const [scrolled, setScrolled] = useState(false);
+  const [shopProducts, setShopProducts] = useState<Product[]>(PRODUCTS);
+
+  useEffect(() => {
+    const cached = getLiveProducts();
+    if (cached && cached.length > 0) {
+      setShopProducts(cached);
+    }
+
+    const loadProducts = () => {
+      api.products.getAll()
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            setShopProducts(data as Product[]);
+            setLiveProducts(data as Product[]);
+          }
+        })
+        .catch(() => {});
+    };
+    loadProducts();
+
+    const handleProductsUpdated = () => {
+      loadProducts();
+    };
+
+    window.addEventListener("hubzone_products_updated", handleProductsUpdated);
+    return () => {
+      window.removeEventListener("hubzone_products_updated", handleProductsUpdated);
+    };
+  }, []);
+
+  const shopBrands = useMemo(() => {
+    return CATEGORIES.map((c) => ({
+      id: c.id,
+      name: BRAND_LOOK[c.id].name,
+      color: BRAND_LOOK[c.id].color,
+      items: sortProducts(shopProducts.filter((p) => p.cat === c.id)),
+    }));
+  }, [shopProducts]);
 
   const shopOpen = menu === "shop";
   const brandsOpen = menu === "brands";
@@ -356,7 +388,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
           <div aria-hidden="true" className={`absolute inset-x-0 top-0 h-[2px] ${BRAND_LINE}`} />
           <div className="mx-auto max-w-[1500px] px-8 pb-10 pt-8">
             <ul className="grid grid-cols-5 gap-x-6 xl:gap-x-10">
-              {SHOP_BRANDS.map((b, i) => (
+              {shopBrands.map((b, i) => (
                 <li
                   key={b.id}
                   style={{ transitionDelay: brandsOpen ? `${60 + i * 60}ms` : "0ms" }}
@@ -400,7 +432,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
 
           <div className="mx-auto max-w-[1500px] px-8 pb-12 pt-10">
             <div className="grid grid-cols-5 items-start gap-x-6 xl:gap-x-10">
-              {SHOP_BRANDS.map((b, i) => (
+              {shopBrands.map((b, i) => (
                 <div
                   key={b.id}
                   style={{ transitionDelay: shopOpen ? `${60 + i * 60}ms` : "0ms" }}
@@ -559,7 +591,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                     >
                       <div className="overflow-hidden">
                         <ul className="space-y-1 pb-6 pt-3">
-                          {SHOP_BRANDS.map((b) => (
+                          {shopBrands.map((b) => (
                             <li key={b.id}>
                               <Link
                                 href={`/brands/${b.id}`}
@@ -589,7 +621,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                     >
                       <div className="overflow-hidden">
                         <div className="grid gap-8 pb-6 pt-5 sm:grid-cols-2">
-                          {SHOP_BRANDS.map((b) => (
+                          {shopBrands.map((b) => (
                             <div key={b.id}>
                               <Link
                                 href={`/shop?category=${b.id}`}

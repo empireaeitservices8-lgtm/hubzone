@@ -183,6 +183,7 @@ export type Product = {
   sub?: string;
   img: string; // main image (always the first of `images`)
   images?: string[]; // all images, only set when a product has more than the default
+  status?: "in_stock" | "out_of_stock";
 };
 
 /** All images of a product, main image first. Always returns at least one. */
@@ -231,8 +232,132 @@ export const eff = (p: Product) => p.offer ?? p.price;
 export const hasOffer = (p: Product) => p.offer !== undefined && p.offer < p.price;
 export const discountPct = (p: Product) => (hasOffer(p) ? Math.round(((p.price - p.offer!) / p.price) * 100) : 0);
 
-export const getProduct = (id: string) => PRODUCTS.find((p) => p.id === id);
-export const getCategory = (id: CategoryId) => CATEGORIES.find((c) => c.id === id)!;
+export const CATEGORY_ORDER: Record<string, number> = {
+  care: 1,
+  perfume: 2,
+  cook: 3,
+  coffee: 4,
+  wash: 5,
+};
+
+export const CANONICAL_PRODUCT_ORDER: string[] = [
+  // HubCare
+  "hair_oil",
+  "neelayamari_shampoo",
+  "pain_oil",
+  "ayurveda_soap",
+  "neelayamari",
+  "mehandhi",
+  "sandal_soap",
+  "turmeric_soap",
+  "mukhakanthi_soap",
+  "mukhakanthi_powder",
+
+  // HubNoir
+  "perfumes",
+  "fragrances",
+
+  // HubCook
+  "dosa_tawa",
+  "fry_pan",
+  "bowl",
+
+  // HubCof
+  "Wayanad-Coffee-125",
+  "Wayanad-Coffee-250",
+  "Wayanad-Coffee-500",
+
+  // HubWash
+  "brass_cleaner",
+  "car_wash",
+  "liquid_detergent",
+  "fabric_stiff",
+  "floor_cleaner",
+  "hand_wash",
+  "toilet_cleaner",
+];
+
+export const PRODUCT_ORDER_INDEX: Record<string, number> = {};
+CANONICAL_PRODUCT_ORDER.forEach((id, idx) => {
+  PRODUCT_ORDER_INDEX[id] = idx + 1;
+});
+
+export function sortProducts<T extends { id: string; cat: string; name?: string }>(items: T[]): T[] {
+  return [...items].sort((a, b) => {
+    const catA = CATEGORY_ORDER[a.cat] ?? 999;
+    const catB = CATEGORY_ORDER[b.cat] ?? 999;
+    if (catA !== catB) return catA - catB;
+
+    const prodA = PRODUCT_ORDER_INDEX[a.id] ?? 999;
+    const prodB = PRODUCT_ORDER_INDEX[b.id] ?? 999;
+    if (prodA !== prodB) return prodA - prodB;
+
+    return (a.name || "").localeCompare(b.name || "");
+  });
+}
+
+export const sortProductsByCategory = sortProducts;
+
+let cachedLiveProducts: Product[] = sortProducts([...PRODUCTS]);
+
+export function setLiveProducts(list: Product[]) {
+  if (!Array.isArray(list)) return;
+  const map = new Map<string, Product>();
+  PRODUCTS.forEach((p) => map.set(p.id, p));
+  list.forEach((p) => {
+    if (p && p.id) {
+      map.set(p.id, {
+        ...p,
+        price: Number(p.price) || 0,
+        offer: p.offer !== undefined && p.offer !== null ? Number(p.offer) : undefined,
+      });
+    }
+  });
+  cachedLiveProducts = sortProducts(Array.from(map.values()));
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem("hubzone_products_cache", JSON.stringify(cachedLiveProducts));
+    } catch {}
+  }
+}
+
+export function getLiveProducts(): Product[] {
+  if (typeof window !== "undefined") {
+    try {
+      const stored = localStorage.getItem("hubzone_products_cache");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const map = new Map<string, Product>();
+          PRODUCTS.forEach((p) => map.set(p.id, p));
+          parsed.forEach((p: Product) => {
+            if (p && p.id) {
+              map.set(p.id, {
+                ...p,
+                price: Number(p.price) || 0,
+                offer: p.offer !== undefined && p.offer !== null ? Number(p.offer) : undefined,
+              });
+            }
+          });
+          cachedLiveProducts = sortProducts(Array.from(map.values()));
+          return cachedLiveProducts;
+        }
+      }
+    } catch {}
+  }
+  return cachedLiveProducts;
+}
+
+export const getProduct = (id: string): Product | undefined => {
+  const live = getLiveProducts();
+  const found = live.find((p) => p.id === id);
+  if (found) return found;
+  return PRODUCTS.find((p) => p.id === id);
+};
+
+export const getCategory = (id: string | CategoryId) => {
+  return CATEGORIES.find((c) => c.id === id) || CATEGORIES[0];
+};
 
 /** Tinted tile background (soft glow in the category colour). Inline style, so it never depends on Tailwind scanning. */
 export const tileStyle = (color: string): CSSProperties => ({

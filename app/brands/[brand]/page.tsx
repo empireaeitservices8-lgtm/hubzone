@@ -9,8 +9,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import ProductCard from "@/components/ProductCard";
+import BrandProductSection from "@/components/BrandProductSection";
 import ShopShell, { ShopTop, WRAP } from "@/components/ShopShell";
-import { CATEGORIES, PRODUCTS, type CategoryId } from "@/lib/products";
+import { CATEGORIES, PRODUCTS, sortProducts, type CategoryId, type Product } from "@/lib/products";
 
 /* Edit the text here. `about` is the paragraph under the brand name, `points` are the small highlights. */
 const BRAND_INFO: Record<CategoryId, { tagline: string; about: string; points: string[] }> = {
@@ -83,7 +84,20 @@ async function BrandContent({ params }: { params: Promise<Params> }) {
   if (!cat) notFound();
 
   const info = BRAND_INFO[cat.id];
-  const products = PRODUCTS.filter((p) => p.cat === cat.id);
+  let products: Product[] = PRODUCTS.filter((p) => p.cat === cat.id);
+  try {
+    const res = await fetch(`http://localhost:5000/api/products?category=${encodeURIComponent(cat.id)}`, {
+      cache: "no-store",
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        products = data as Product[];
+      }
+    }
+  } catch {
+    // fallback to static PRODUCTS
+  }
   const others = CATEGORIES.filter((c) => c.id !== cat.id);
 
   return (
@@ -130,24 +144,11 @@ async function BrandContent({ params }: { params: Promise<Params> }) {
       </ShopTop>
 
       <main className={`${WRAP} pb-[72px] pt-10 sm:pb-24 sm:pt-14`}>
-        <div className="mb-8 flex flex-wrap items-end justify-between gap-3 sm:mb-10">
-          <h2 className="font-[family-name:var(--font-serif)] text-[length:clamp(28px,4vw,44px)] font-medium leading-tight">
-            Products in {cat.label}
-          </h2>
-          <span className="text-sm text-[#6a5c4f]">
-            {products.length} {products.length === 1 ? "product" : "products"}
-          </span>
-        </div>
-
-        {products.length === 0 ? (
-          <p className="text-[#6a5c4f]">New products are coming soon.</p>
-        ) : (
-          <div className="grid grid-cols-1 gap-x-3.5 gap-y-8 min-[381px]:grid-cols-2 sm:gap-x-[22px] sm:gap-y-11 md:grid-cols-3 min-[1101px]:grid-cols-4">
-            {products.map((p, i) => (
-              <ProductCard key={p.id} p={p} i={i} />
-            ))}
-          </div>
-        )}
+        <BrandProductSection
+          initialProducts={sortProducts(products)}
+          categoryLabel={cat.label}
+          categoryId={cat.id}
+        />
 
         {/* Other brands */}
         <section className="mt-16 border-t border-[#2a231e]/15 pt-10 sm:mt-24" aria-label="Other brands">

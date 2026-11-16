@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import ProductCard from "@/components/ProductCard";
 import ShopShell, { ShopTop, WRAP } from "@/components/ShopShell";
-import { PRODUCTS, discountPct, eff, getCategory, getImages, getProduct, hasOffer, inr } from "@/lib/products";
+import { PRODUCTS, discountPct, eff, getCategory, getImages, getProduct, hasOffer, inr, type Product } from "@/lib/products";
 import OrderPanel from "./OrderPanel";
 import ProductGallery from "./ProductGallery";
 import ProductReviews from "./ProductReviews";
@@ -17,26 +17,69 @@ export function generateStaticParams() {
   return PRODUCTS.map((p) => ({ id: p.id }));
 }
 
+async function fetchProductData(id: string): Promise<Product | null> {
+  try {
+    const res = await fetch(`http://localhost:5000/api/product/${encodeURIComponent(id)}`, {
+      cache: "no-store",
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.id) {
+        return {
+          id: data.id,
+          name: data.name,
+          cat: data.cat,
+          price: Number(data.price) || 0,
+          offer: data.offer !== undefined && data.offer !== null ? Number(data.offer) : undefined,
+          desc: data.desc,
+          ingredients: data.ingredients,
+          sub: data.sub,
+          img: data.img,
+          images: data.images,
+          status: data.status,
+          ...(data as any),
+        };
+      }
+    }
+  } catch {}
+
+  const local = getProduct(id);
+  return local || null;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const p = getProduct(id);
+  const p = await fetchProductData(id);
   if (!p) return { title: "Product not found | HUBZONE" };
+  const c = getCategory(p.cat);
   return {
     title: `${p.name} | HUBZONE`,
-    description: p.desc ?? `${p.name} from ${getCategory(p.cat).brand}. ${getCategory(p.cat).blurb}.`,
+    description: p.desc ?? `${p.name} from ${c.brand}. ${c.blurb}.`,
   };
 }
 
 /** Reads the id from the URL, so it renders inside <Suspense> (see ProductPage below). */
 async function ProductContent({ params }: Props) {
   const { id } = await params;
-  const p = getProduct(id);
+  const p = await fetchProductData(id);
   if (!p) notFound();
 
   const c = getCategory(p.cat);
   const offer = hasOffer(p);
-  const same = PRODUCTS.filter((x) => x.cat === p.cat && x.id !== p.id);
-  const others = PRODUCTS.filter((x) => x.cat !== p.cat);
+
+  let allProducts: Product[] = PRODUCTS;
+  try {
+    const res = await fetch(`http://localhost:5000/api/products`, { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        allProducts = data as Product[];
+      }
+    }
+  } catch { }
+
+  const same = allProducts.filter((x) => x.cat === p.cat && x.id !== p.id);
+  const others = allProducts.filter((x) => x.cat !== p.cat);
   const related = [...same, ...others].slice(0, 4);
 
   return (

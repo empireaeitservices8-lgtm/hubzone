@@ -23,13 +23,8 @@ const KEY = "hubzone-cart";
 
 /** Preview helper: while true, a visitor who has never used the cart starts with these sample products.
  *  Set SEED_DEMO to false (or empty DEMO_CART) before you go live. */
-const SEED_DEMO = true;
-const DEMO_CART: Line[] = [
-  { id: "hair_oil", qty: 2 },
-  { id: "dosa_tawa", qty: 1 },
-  { id: "liquid_detergent", qty: 3 },
-  { id: "Wayanad-Coffee-250", qty: 1 },
-];
+const SEED_DEMO = false;
+const DEMO_CART: Line[] = [];
 const MAX = 99;
 const Ctx = createContext<CartCtx | null>(null);
 
@@ -76,14 +71,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const add = useCallback((id: string, qty = 1) => {
     const p = getProduct(id);
-    if (!p) return;
+    const prodName = p ? p.name : "Product";
     setLines((cur) => {
       const found = cur.find((l) => l.id === id);
       return found
         ? cur.map((l) => (l.id === id ? { ...l, qty: Math.min(MAX, l.qty + qty) } : l))
         : [...cur, { id, qty: Math.min(MAX, qty) }];
     });
-    setToast({ name: p.name, n: qty });
+    setToast({ name: prodName, n: qty });
     setToastOn(true);
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => setToastOn(false), 3200);
