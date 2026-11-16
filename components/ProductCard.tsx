@@ -1,8 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { useCart } from "@/lib/cart";
+import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
 import { discountPct, eff, getCategory, getImages, hasOffer, inr, tileStyle, type Product } from "@/lib/products";
 
 function JarPlaceholder({ name, active = true }: { name: string; active?: boolean }) {
@@ -86,6 +89,8 @@ const CheckIcon = () => (
 );
 
 export default function ProductCard({ p }: { p: Product; i?: number }) {
+  const router = useRouter();
+  const { user } = useAuth();
   const { add } = useCart();
   const [done, setDone] = useState(false);
   const [idx, setIdx] = useState(0);
@@ -96,8 +101,28 @@ export default function ProductCard({ p }: { p: Product; i?: number }) {
   const imgs = getImages(p);
   const many = imgs.length > 1;
 
-  const addToCart = () => {
+  const handleProductClick = (e: React.MouseEvent) => {
+    if (!user) {
+      e.preventDefault();
+      toast.error("Please sign in to view product details.");
+      router.push(`/login?redirect=${encodeURIComponent(href)}`);
+    }
+  };
+
+  const addToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) {
+      toast.error("Please sign in to add items to your cart.");
+      router.push(`/login?redirect=${encodeURIComponent(href)}`);
+      return;
+    }
+    if ((p as any).status === "out_of_stock") {
+      toast.warning(`${p.name} is currently out of stock.`);
+      return;
+    }
     add(p.id);
+    toast.success(`Added "${p.name}" to cart!`);
     setDone(true);
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => setDone(false), 1500);
@@ -113,7 +138,7 @@ export default function ProductCard({ p }: { p: Product; i?: number }) {
     <article className="group flex h-full min-w-0 flex-col" style={{ ["--tile" as string]: c.tile }}>
       {/* Tile: 5:4, add-to-cart sits on its corner */}
       <div className="relative">
-        <Link href={href} className="block" tabIndex={-1} aria-hidden="true">
+        <Link href={href} onClick={handleProductClick} className="block" tabIndex={-1} aria-hidden="true">
           <div
             className="relative aspect-[5/4] overflow-hidden rounded-2xl shadow-[inset_0_0_0_1px_rgba(42,35,30,0.07)] transition-[transform,box-shadow] duration-500 ease-out group-hover:-translate-y-1 group-hover:shadow-[0_22px_38px_-22px_rgba(42,35,30,0.45),inset_0_0_0_1px_rgba(42,35,30,0.07)] group-active:scale-[0.98]"
             style={tileStyle(c.tile)}
@@ -124,6 +149,11 @@ export default function ProductCard({ p }: { p: Product; i?: number }) {
             <span className="absolute left-2.5 top-2.5 z-[2] rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-medium leading-none text-[#2a231e] backdrop-blur-sm">
               {c.label}
             </span>
+            {(p as any).status === "out_of_stock" && (
+              <span className="absolute left-2.5 bottom-2.5 z-[2] rounded-full bg-neutral-900/85 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
+                Out of Stock
+              </span>
+            )}
             {offer && (
               <span className="absolute right-2.5 top-2.5 z-[2] rounded-full bg-[#b8613a] px-2.5 py-1 text-[11px] font-medium leading-none text-white">
                 {discountPct(p)}% off
@@ -171,7 +201,7 @@ export default function ProductCard({ p }: { p: Product; i?: number }) {
       </div>
 
       {/* Info: name on top, price pinned to the bottom so prices line up across a row */}
-      <Link href={href} className="group/meta flex flex-1 flex-col px-0.5 pt-3">
+      <Link href={href} onClick={handleProductClick} className="group/meta flex flex-1 flex-col px-0.5 pt-3">
         <h2 className="line-clamp-2 break-words font-[family-name:var(--font-serif)] text-[length:clamp(17px,1.5vw,20px)] font-medium leading-[1.2] transition-colors group-hover/meta:text-[#b8613a]">
           {p.name}
         </h2>

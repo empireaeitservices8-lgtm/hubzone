@@ -1,9 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import ShopShell, { ShopTop, WRAP } from "@/components/ShopShell";
 import { TileArt } from "@/components/ProductCard";
 import { useCart } from "@/lib/cart";
+import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
 import { eff, getCategory, getProduct, hasOffer, inr, tileStyle, type Product } from "@/lib/products";
 
 const TrashIcon = () => (
@@ -22,7 +26,79 @@ const BagIcon = () => (
 const step = "flex h-[34px] w-[34px] items-center justify-center rounded-full text-[17px] transition-colors hover:bg-[#f0e5d0]";
 
 export default function CartPage() {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const { lines, ready, count, setQty, remove, clear } = useCart();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      toast.error("Please sign in to access your cart.");
+      router.replace("/login?redirect=/cart");
+    }
+  }, [user, authLoading, router]);
+
+  if (authLoading) {
+    return (
+      <ShopShell>
+        <ShopTop bottom="pb-10 sm:pb-14">
+          <h1 className="mb-2.5 font-[family-name:var(--font-serif)] text-4xl">Your Cart</h1>
+        </ShopTop>
+        <main className={`${WRAP} py-20 text-center`}>
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#2a231e] border-t-transparent mx-auto" />
+        </main>
+      </ShopShell>
+    );
+  }
+
+  if (!user) {
+    return (
+      <ShopShell>
+        <ShopTop bottom="pb-10 sm:pb-14">
+          <h1 className="mb-2.5 font-[family-name:var(--font-serif)] text-[length:clamp(40px,6vw,72px)] font-medium leading-[1.02]">
+            Your Cart
+          </h1>
+          <p className="text-base text-[#f6e9d0]/65">Sign in required</p>
+        </ShopTop>
+        <main className={`${WRAP} py-16 text-center`}>
+          <div className="rounded-[28px] bg-white p-10 max-w-md mx-auto shadow-sm border border-[#2a231e]/10">
+            <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-[#fbf6ea] text-[#2a231e]">
+              <BagIcon />
+            </div>
+            <h2 className="font-[family-name:var(--font-serif)] text-2xl font-medium text-[#2a231e]">
+              Sign in to access your cart
+            </h2>
+            <p className="mt-2 text-sm text-[#6a5c4f]">
+              Your cart items and saved products are private to your HubZone member account.
+            </p>
+            <div className="mt-6 flex flex-col gap-3">
+              <Link
+                href="/login?redirect=/cart"
+                className="w-full rounded-full bg-[#2a231e] text-[#f6e9d0] px-6 py-3 text-xs font-semibold uppercase tracking-wider hover:bg-[#b8613a] transition"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/shop"
+                className="w-full rounded-full border border-[#2a231e]/20 px-6 py-2.5 text-xs font-semibold uppercase tracking-wider text-[#6a5c4f] hover:bg-neutral-100 transition"
+              >
+                Continue browsing
+              </Link>
+            </div>
+          </div>
+        </main>
+      </ShopShell>
+    );
+  }
+
+  const handleRemove = (id: string, name: string) => {
+    remove(id);
+    toast.info(`Removed "${name}" from cart.`);
+  };
+
+  const handleClear = () => {
+    clear();
+    toast.info("Cart cleared.");
+  };
 
   const items = lines.flatMap((l) => {
     const p = getProduct(l.id);
@@ -96,7 +172,7 @@ export default function CartPage() {
                         <span className="font-[family-name:var(--font-serif)] text-2xl font-medium leading-none sm:text-[28px]">{inr(eff(p) * qty)}</span>
                         <button
                           type="button"
-                          onClick={() => remove(p.id)}
+                          onClick={() => handleRemove(p.id, p.name)}
                           aria-label={`Remove ${p.name} from cart`}
                           className="inline-flex items-center gap-1.5 text-[13.5px] text-[#6a5c4f] transition-colors hover:text-[#b8613a]"
                         >
@@ -108,7 +184,7 @@ export default function CartPage() {
                   );
                 })}
               </ul>
-              <button type="button" onClick={clear} className="mt-[22px] text-sm text-[#6a5c4f] underline underline-offset-4 transition-colors hover:text-[#b8613a]">
+              <button type="button" onClick={handleClear} className="mt-[22px] text-sm text-[#6a5c4f] underline underline-offset-4 transition-colors hover:text-[#b8613a]">
                 Clear cart
               </button>
             </section>

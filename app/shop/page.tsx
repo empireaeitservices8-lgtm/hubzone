@@ -8,7 +8,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import ProductCard from "@/components/ProductCard";
 import ShopShell, { ShopTop, WRAP } from "@/components/ShopShell";
-import { CATEGORIES, PRODUCTS, eff, type CategoryId } from "@/lib/products";
+import { CATEGORIES, PRODUCTS, eff, type CategoryId, type Product } from "@/lib/products";
+import { api } from "@/lib/api";
 
 const PAGE_SIZE = 12;
 
@@ -153,18 +154,29 @@ function Pagination({ page, total, onChange }: { page: number; total: number; on
 const CHIP = "rounded-full border px-[18px] py-[9px] text-[13px] font-medium transition duration-200 active:scale-95";
 
 export default function ShopPage() {
+  const [productList, setProductList] = useState<Product[]>(PRODUCTS);
   const [cat, setCat] = useState<CategoryId | "all">("all");
   const [sort, setSort] = useState<SortId>("featured");
   const [page, setPage] = useState(1);
   const listRef = useRef<HTMLElement>(null);
 
+  useEffect(() => {
+    api.products.getAll()
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setProductList(data as Product[]);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const sorted = useMemo(() => {
-    const base = cat === "all" ? [...PRODUCTS] : PRODUCTS.filter((p) => p.cat === cat);
+    const base = cat === "all" ? [...productList] : productList.filter((p) => p.cat === cat);
     if (sort === "low") base.sort((a, b) => eff(a) - eff(b));
     if (sort === "high") base.sort((a, b) => eff(b) - eff(a));
     if (sort === "az") base.sort((a, b) => a.name.localeCompare(b.name));
     return base;
-  }, [cat, sort]);
+  }, [productList, cat, sort]);
 
   const pages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
   const current = Math.min(page, pages);

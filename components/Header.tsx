@@ -2,10 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { mono } from "@/lib/fonts";
 import { CATEGORIES, PRODUCTS, type CategoryId } from "@/lib/products"; // adjust the path to where your products file lives
 import { useCallback, useEffect, useState } from "react";
+import { useAuth } from "@/lib/auth";
+import { useCart } from "@/lib/cart";
+import { toast } from "sonner";
 
 /* -------------------------------------------------------------------------- */
 /*  Config – edit these to match your project                                  */
@@ -85,7 +88,12 @@ const BRAND_LINE = "bg-[linear-gradient(90deg,#4caf50_0%,#d4a24c_35%,#f08a24_65%
 /* -------------------------------------------------------------------------- */
 
 export default function Header({ cartCount = 0 }: HeaderProps) {
+  const router = useRouter();
   const pathname = usePathname();
+  const { user, isAdmin, logout } = useAuth();
+  const { count } = useCart();
+  const effectiveCartCount = count || cartCount;
+
   const [open, setOpen] = useState(false); // full-screen menu (phones/tablets)
   const [menu, setMenu] = useState<MenuId>(null); // desktop dropdown that is open
   const [mobileOpen, setMobileOpen] = useState<MenuId>(null); // mobile accordion that is open (none by default)
@@ -229,38 +237,83 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <Link
               href="/cart"
-              aria-label={`Cart, ${cartCount} items`}
+              onClick={(e) => {
+                if (!user) {
+                  e.preventDefault();
+                  toast.error("Please sign in to access your cart.");
+                  router.push("/login?redirect=/cart");
+                }
+              }}
+              aria-label={`Cart, ${effectiveCartCount} items`}
               className={[
                 "relative flex h-11 w-11 items-center justify-center rounded-full border transition-colors",
                 light ? "border-white/30 hover:bg-white/10" : "border-black/10 bg-white hover:border-black/25",
               ].join(" ")}
             >
               <CartIcon />
-              {cartCount > 0 && (
+              {effectiveCartCount > 0 && (
                 <span className={`absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full px-1 text-[11px] font-bold ${light ? "bg-white text-black" : "bg-neutral-900 text-white"}`}>
-                  {cartCount}
+                  {effectiveCartCount}
                 </span>
               )}
             </Link>
 
-            <Link
-              href="/login"
-              className={`${mono.className} hidden px-3 py-2 text-[13px] uppercase transition-opacity hover:opacity-70 sm:inline-block`}
-            >
-              Login
-            </Link>
+            {user ? (
+              <div className="hidden items-center gap-2 sm:flex">
+                {isAdmin && (
+                  <Link
+                    href="/admin"
+                    className="flex items-center gap-1.5 rounded-full bg-[#f08a24]/15 border border-[#f08a24]/40 px-3.5 py-1.5 text-[12px] font-semibold uppercase tracking-wider text-[#f08a24] hover:bg-[#f08a24]/25 transition"
+                  >
+                    <span className="h-2 w-2 rounded-full bg-[#f08a24] animate-pulse" />
+                    Admin
+                  </Link>
+                )}
+                <Link
+                  href="/orders"
+                  className={`${mono.className} px-2.5 py-1.5 text-[13px] uppercase tracking-wide transition-opacity hover:opacity-70`}
+                >
+                  Orders
+                </Link>
+                <Link
+                  href="/profile"
+                  className={`${mono.className} px-2.5 py-1.5 text-[13px] uppercase tracking-wide transition-opacity hover:opacity-70`}
+                >
+                  {user.username.split(" ")[0]}
+                </Link>
+                <button
+                  onClick={logout}
+                  className={[
+                    mono.className,
+                    "rounded-full px-3.5 py-1.5 text-[12px] uppercase transition hover:opacity-75",
+                    light ? "border border-white/30 text-white hover:bg-white/10" : "border border-black/20 text-[#2a231e] hover:bg-black/5"
+                  ].join(" ")}
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className={`${mono.className} hidden px-3 py-2 text-[13px] uppercase transition-opacity hover:opacity-70 sm:inline-block`}
+                >
+                  Login
+                </Link>
 
-            <Link
-              href="/register"
-              className={[
-                mono.className,
-                "hidden items-center gap-3 rounded-full px-6 py-3 text-[13px] uppercase transition-transform hover:scale-[1.03] active:scale-95 sm:inline-flex",
-                light ? "bg-white text-neutral-900" : "bg-neutral-900 text-white",
-              ].join(" ")}
-            >
-              Sign up
-              <span className="h-1.5 w-1.5 rounded-full bg-current" />
-            </Link>
+                <Link
+                  href="/register"
+                  className={[
+                    mono.className,
+                    "hidden items-center gap-3 rounded-full px-6 py-3 text-[13px] uppercase transition-transform hover:scale-[1.03] active:scale-95 sm:inline-flex",
+                    light ? "bg-white text-neutral-900" : "bg-neutral-900 text-white",
+                  ].join(" ")}
+                >
+                  Sign up
+                  <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                </Link>
+              </>
+            )}
 
             {/* Menu / close button – phones & tablets only (desktop uses the nav above) */}
             <button
@@ -600,30 +653,80 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                 open ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0",
               ].join(" ")}
             >
-              <Link
-                href="/login"
-                onClick={close}
-                tabIndex={open ? 0 : -1}
-                className={`${mono.className} rounded-full border border-white/25 px-6 py-3 text-[13px] uppercase text-white transition-colors hover:bg-white/10`}
-              >
-                Login
-              </Link>
-              <Link
-                href="/register"
-                onClick={close}
-                tabIndex={open ? 0 : -1}
-                className={`${mono.className} rounded-full bg-white px-6 py-3 text-[13px] uppercase text-neutral-900`}
-              >
-                Sign up
-              </Link>
+              {user ? (
+                <>
+                  {isAdmin && (
+                    <Link
+                      href="/admin"
+                      onClick={close}
+                      tabIndex={open ? 0 : -1}
+                      className={`${mono.className} rounded-full bg-[#f08a24] text-black px-6 py-3 text-[13px] uppercase font-bold tracking-wider`}
+                    >
+                      Admin Dashboard
+                    </Link>
+                  )}
+                  <Link
+                    href="/profile"
+                    onClick={close}
+                    tabIndex={open ? 0 : -1}
+                    className={`${mono.className} rounded-full border border-white/25 px-6 py-3 text-[13px] uppercase text-white`}
+                  >
+                    Profile
+                  </Link>
+                  <Link
+                    href="/orders"
+                    onClick={close}
+                    tabIndex={open ? 0 : -1}
+                    className={`${mono.className} rounded-full border border-white/25 px-6 py-3 text-[13px] uppercase text-white`}
+                  >
+                    My Orders
+                  </Link>
+                  <button
+                    onClick={() => {
+                      close();
+                      logout();
+                    }}
+                    tabIndex={open ? 0 : -1}
+                    className={`${mono.className} rounded-full bg-white/10 px-6 py-3 text-[13px] uppercase text-white`}
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    onClick={close}
+                    tabIndex={open ? 0 : -1}
+                    className={`${mono.className} rounded-full border border-white/25 px-6 py-3 text-[13px] uppercase text-white transition-colors hover:bg-white/10`}
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/register"
+                    onClick={close}
+                    tabIndex={open ? 0 : -1}
+                    className={`${mono.className} rounded-full bg-white px-6 py-3 text-[13px] uppercase text-neutral-900`}
+                  >
+                    Sign up
+                  </Link>
+                </>
+              )}
               <Link
                 href="/cart"
-                onClick={close}
+                onClick={(e) => {
+                  close();
+                  if (!user) {
+                    e.preventDefault();
+                    toast.error("Please sign in to access your cart.");
+                    router.push("/login?redirect=/cart");
+                  }
+                }}
                 tabIndex={open ? 0 : -1}
                 className={`${mono.className} flex items-center gap-2 rounded-full border border-white/25 px-6 py-3 text-[13px] uppercase text-white transition-colors hover:bg-white/10`}
               >
                 <CartIcon />
-                Cart{cartCount > 0 ? ` (${cartCount})` : ""}
+                Cart{effectiveCartCount > 0 ? ` (${effectiveCartCount})` : ""}
               </Link>
             </div>
           </nav>

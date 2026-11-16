@@ -262,7 +262,7 @@ export default function AboutPage() {
       {/* CTA */}
       <section className="cta">
         <div className="ctabg" aria-hidden="true">
-          <Img src="/images/cta.jpg" alt="" />
+          <Img src="/cta.jpg" alt="" />
         </div>
         <div className="wrap ctain">
           <h2>Let&rsquo;s build something together.</h2>

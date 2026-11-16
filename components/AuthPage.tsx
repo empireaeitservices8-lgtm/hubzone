@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import ShopShell, { ShopTop, WRAP } from "@/components/ShopShell";
+import { useAuth } from "@/lib/auth";
+import { toast } from "sonner";
 
 type Mode = "login" | "register";
 type Values = { name: string; phone: string; id: string; email: string; password: string };
@@ -102,8 +104,11 @@ function Showcase({ mode }: { mode: Mode }) {
   );
 }
 
-export default function AuthPage({ mode }: { mode: Mode }) {
+function AuthContent({ mode }: { mode: Mode }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get("redirect");
+  const { login, register } = useAuth();
   const [v, setV] = useState<Values>(EMPTY);
   const [errors, setErrors] = useState<Errors>({});
   const [show, setShow] = useState(false);
@@ -114,13 +119,13 @@ export default function AuthPage({ mode }: { mode: Mode }) {
 
   const set =
     (k: keyof Values) =>
-    (e: ChangeEvent<HTMLInputElement>) => {
-      let val: string = e.target.value;
-      if (k === "phone") val = val.replace(/\D/g, "").slice(0, 10);
-      setV((c) => ({ ...c, [k]: val }));
-      if (errors[k]) setErrors((c) => ({ ...c, [k]: undefined }));
-      setFormError("");
-    };
+      (e: ChangeEvent<HTMLInputElement>) => {
+        let val: string = e.target.value;
+        if (k === "phone") val = val.replace(/\D/g, "").slice(0, 10);
+        setV((c) => ({ ...c, [k]: val }));
+        if (errors[k]) setErrors((c) => ({ ...c, [k]: undefined }));
+        setFormError("");
+      };
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -132,15 +137,29 @@ export default function AuthPage({ mode }: { mode: Mode }) {
       return;
     }
     setBusy(true);
+    setFormError("");
     try {
-      /* TODO: call your auth API here (NextAuth, Clerk, Supabase, your own route...).
-         login:    { identifier: v.id, password: v.password }
-         register: { name: v.name, phone: v.phone, email: v.email, password: v.password }
-         On failure: setFormError("Email or password is incorrect"). */
-      await new Promise((r) => setTimeout(r, 900));
-      router.push("/shop");
-    } catch {
-      setFormError("Something went wrong. Please try again.");
+      if (isLogin) {
+        const res = await login(v.id, v.password);
+        toast.success(`Welcome back, ${res.user.username}!`);
+        if (res.user.role === "admin") {
+          router.push(redirectParam || "/admin");
+        } else {
+          router.push(redirectParam || "/shop");
+        }
+      } else {
+        await register({
+          name: v.name,
+          phone: v.phone,
+          email: v.email,
+          password: v.password,
+        });
+        toast.success("Account created successfully! Welcome to HubZone.");
+        router.push(redirectParam || "/shop");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Authentication failed. Please verify your details.");
+      setFormError(err.message || "Authentication failed. Please verify your details.");
     } finally {
       setBusy(false);
     }
@@ -166,10 +185,20 @@ export default function AuthPage({ mode }: { mode: Mode }) {
             <div className="mx-auto w-full max-w-[420px]">
               {/* mode switch */}
               <div className="mb-8 grid grid-cols-2 rounded-full bg-[#f0e5d0] p-1 text-[14.5px] font-medium" role="tablist">
-                <Link href="/login" role="tab" aria-selected={isLogin} className={`rounded-full py-2.5 text-center transition ${isLogin ? "bg-[#2a231e] text-[#f6e9d0]" : "text-[#6a5c4f] hover:text-[#2a231e]"}`}>
+                <Link
+                  href={redirectParam ? `/login?redirect=${encodeURIComponent(redirectParam)}` : "/login"}
+                  role="tab"
+                  aria-selected={isLogin}
+                  className={`rounded-full py-2.5 text-center transition ${isLogin ? "bg-[#2a231e] text-[#f6e9d0]" : "text-[#6a5c4f] hover:text-[#2a231e]"}`}
+                >
                   Sign in
                 </Link>
-                <Link href="/register" role="tab" aria-selected={!isLogin} className={`rounded-full py-2.5 text-center transition ${!isLogin ? "bg-[#2a231e] text-[#f6e9d0]" : "text-[#6a5c4f] hover:text-[#2a231e]"}`}>
+                <Link
+                  href={redirectParam ? `/register?redirect=${encodeURIComponent(redirectParam)}` : "/register"}
+                  role="tab"
+                  aria-selected={!isLogin}
+                  className={`rounded-full py-2.5 text-center transition ${!isLogin ? "bg-[#2a231e] text-[#f6e9d0]" : "text-[#6a5c4f] hover:text-[#2a231e]"}`}
+                >
                   Create account
                 </Link>
               </div>
@@ -273,5 +302,25 @@ export default function AuthPage({ mode }: { mode: Mode }) {
         </div>
       </main>
     </ShopShell>
+  );
+}
+
+export default function AuthPage({ mode }: { mode: Mode }) {
+  return (
+    <Suspense
+      fallback={
+        <ShopShell>
+          <ShopTop bottom="pb-10 sm:pb-14">
+            <div className="mb-2.5 h-12 w-60 animate-pulse rounded bg-[#f6e9d0]/15" />
+            <div className="h-5 w-40 animate-pulse rounded bg-[#f6e9d0]/15" />
+          </ShopTop>
+          <main className={`${WRAP} pb-16 pt-7 sm:pb-24 sm:pt-12 text-center py-20`}>
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#2a231e] border-t-transparent mx-auto" />
+          </main>
+        </ShopShell>
+      }
+    >
+      <AuthContent mode={mode} />
+    </Suspense>
   );
 }

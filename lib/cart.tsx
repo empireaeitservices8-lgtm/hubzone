@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { getProduct } from "./products";
 import CartToast from "@/components/CartToast";
+import { api, getToken } from "./api";
 
 type Line = { id: string; qty: number };
 
@@ -86,13 +87,36 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setToastOn(true);
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => setToastOn(false), 3200);
+
+    if (getToken()) {
+      api.cart.add(id, qty).catch(() => {});
+    }
   }, []);
 
   const setQty = useCallback((id: string, qty: number) => {
     setLines((cur) => (qty <= 0 ? cur.filter((l) => l.id !== id) : cur.map((l) => (l.id === id ? { ...l, qty: Math.min(MAX, qty) } : l))));
+    if (getToken()) {
+      if (qty <= 0) {
+        api.cart.remove(id).catch(() => {});
+      } else {
+        api.cart.updateQty(id, qty).catch(() => {});
+      }
+    }
   }, []);
-  const remove = useCallback((id: string) => setLines((cur) => cur.filter((l) => l.id !== id)), []);
-  const clear = useCallback(() => setLines([]), []);
+
+  const remove = useCallback((id: string) => {
+    setLines((cur) => cur.filter((l) => l.id !== id));
+    if (getToken()) {
+      api.cart.remove(id).catch(() => {});
+    }
+  }, []);
+
+  const clear = useCallback(() => {
+    setLines([]);
+    if (getToken()) {
+      api.cart.clear().catch(() => {});
+    }
+  }, []);
 
   const count = useMemo(() => lines.reduce((s, l) => s + l.qty, 0), [lines]);
   const value = useMemo(() => ({ lines, ready, count, add, setQty, remove, clear }), [lines, ready, count, add, setQty, remove, clear]);

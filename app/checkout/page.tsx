@@ -1,11 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import ShopShell, { ShopTop, WRAP } from "@/components/ShopShell";
 import { TileArt } from "@/components/ProductCard";
 import { useCart } from "@/lib/cart";
 import { eff, getCategory, getProduct, inr, tileStyle, type Product } from "@/lib/products";
+import { useAuth } from "@/lib/auth";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 
 /* ---- edit these to match your delivery policy ---- */
 const FREE_DELIVERY_ABOVE = 499;
@@ -143,11 +147,37 @@ function Summary({ items, subtotal, savings, delivery, total }: {
 }
 
 export default function CheckoutPage() {
+  const router = useRouter();
   const { lines, ready, count, clear } = useCart();
+  const { user, loading: authLoading } = useAuth();
   const [f, setF] = useState<Form>(EMPTY);
   const [errors, setErrors] = useState<Errors>({});
   const [busy, setBusy] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const [apiError, setApiError] = useState("");
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      toast.error("Please sign in to place an order.");
+      router.replace("/login?redirect=/checkout");
+    }
+  }, [user, authLoading, router]);
+
+  // Autofill form if user is logged in
+  useEffect(() => {
+    if (user) {
+      setF((cur) => ({
+        ...cur,
+        name: cur.name || user.username || "",
+        email: cur.email || user.email || "",
+        phone: cur.phone || user.phone || "",
+        address: cur.address || user.address || "",
+        city: cur.city || user.city || "",
+        state: cur.state || user.state || "Kerala",
+        pin: cur.pin || user.pin || "",
+      }));
+    }
+  }, [user]);
 
   const items = lines.flatMap((l) => {
     const p = getProduct(l.id);
@@ -166,6 +196,7 @@ export default function CheckoutPage() {
       if (k === "pin") v = v.replace(/\D/g, "").slice(0, 6);
       setF((cur) => ({ ...cur, [k]: v }));
       if (errors[k]) setErrors((cur) => ({ ...cur, [k]: undefined }));
+      setApiError("");
     };
 
   const submit = async (e: FormEvent) => {
@@ -178,17 +209,93 @@ export default function CheckoutPage() {
       return;
     }
     setBusy(true);
+    setApiError("");
     try {
-      /* TODO: send { customer: f, lines } to your API.
-         - "online": create the order, open Razorpay / PhonePe / Stripe, confirm on success.
-         - "cod": create the order with status "pending". */
-      await new Promise((r) => setTimeout(r, 900));
-      setOrderId("HZ" + Date.now().toString().slice(-7));
+      const orderPayload = {
+        name: f.name,
+        phone: f.phone,
+        email: f.email || (user ? user.email : ""),
+        address: `${f.address}${f.landmark ? `, Near ${f.landmark}` : ""}`,
+        city: f.city,
+        state: f.state,
+        pin: f.pin,
+        paymentMethod: f.pay === "cod" ? "Cash on Delivery" : "Online Payment",
+        subtotal,
+        deliveryFee: delivery,
+        totalAmount: total,
+        items: items.map((it) => ({
+          id: it.p.id,
+          name: it.p.name,
+          price: eff(it.p),
+          originalPrice: it.p.price,
+          qty: it.qty,
+          cat: it.p.cat,
+          img: it.p.img,
+        })),
+      };
+
+      const res = await api.orders.create(orderPayload);
+      const placedNum = res.order?.orderNumber || "HZ" + Date.now().toString().slice(-7);
+      setOrderId(placedNum);
+      toast.success(`Order placed successfully! Order #${placedNum}`);
       clear();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to place order.");
+      setApiError(err.message || "Failed to place order. Please try again.");
     } finally {
       setBusy(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <ShopShell>
+        <ShopTop bottom="pb-10 sm:pb-14">
+          <h1 className="mb-2.5 font-[family-name:var(--font-serif)] text-4xl">Checkout</h1>
+        </ShopTop>
+        <main className={`${WRAP} py-20 text-center`}>
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#2a231e] border-t-transparent mx-auto" />
+        </main>
+      </ShopShell>
+    );
+  }
+
+  if (!user) {
+    return (
+      <ShopShell>
+        <ShopTop bottom="pb-10 sm:pb-14">
+          <h1 className="mb-2.5 font-[family-name:var(--font-serif)] text-[length:clamp(40px,6vw,72px)] font-medium leading-[1.02]">
+            Checkout
+          </h1>
+          <p className="text-base text-[#f6e9d0]/65">Sign in required</p>
+        </ShopTop>
+        <main className={`${WRAP} py-16 text-center`}>
+          <div className="rounded-[28px] bg-white p-10 max-w-md mx-auto shadow-sm border border-[#2a231e]/10">
+            <h2 className="font-[family-name:var(--font-serif)] text-2xl font-medium text-[#2a231e]">
+              Sign in to place your order
+            </h2>
+            <p className="mt-2 text-sm text-[#6a5c4f]">
+              You must be signed in with your HubZone account to complete checkout and receive tracking updates.
+            </p>
+            <div className="mt-6 flex flex-col gap-3">
+              <Link
+                href="/login?redirect=/checkout"
+                className="w-full rounded-full bg-[#2a231e] text-[#f6e9d0] px-6 py-3 text-xs font-semibold uppercase tracking-wider hover:bg-[#b8613a] transition"
+              >
+                Sign In to Checkout
+              </Link>
+              <Link
+                href="/cart"
+                className="w-full rounded-full border border-[#2a231e]/20 px-6 py-2.5 text-xs font-semibold uppercase tracking-wider text-[#6a5c4f] hover:bg-neutral-100 transition"
+              >
+                Back to Cart
+              </Link>
+            </div>
+          </div>
+        </main>
+      </ShopShell>
+    );
+  }
 
   /* ---------- order placed ---------- */
   if (orderId) {
@@ -208,11 +315,16 @@ export default function CheckoutPage() {
           </div>
           <h2 className="font-[family-name:var(--font-serif)] text-[length:clamp(30px,4vw,44px)] font-medium leading-[1.1]">Thank you, {f.name.split(" ")[0]}</h2>
           <p className="mt-3 max-w-[460px] text-[#6a5c4f]">
-            We&apos;ve sent the details to {f.email || `+91 ${f.phone}`}. We&apos;ll pack your order and update you when it ships to {f.city}.
+            We&apos;ve confirmed your order <strong>{orderId}</strong>. We&apos;ll pack your items and update you when it ships to {f.city}.
           </p>
-          <Link href="/shop" className="mt-8 inline-flex items-center justify-center rounded-full bg-[#2a231e] px-8 py-4 text-[15px] font-medium text-[#f6e9d0] transition duration-300 hover:-translate-y-0.5 hover:bg-[#b8613a]">
-            Continue shopping
-          </Link>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+            <Link href="/orders" className="inline-flex items-center justify-center rounded-full bg-[#b8613a] px-8 py-4 text-[15px] font-medium text-white transition duration-300 hover:bg-[#a04e28]">
+              Track Your Order Status
+            </Link>
+            <Link href="/shop" className="inline-flex items-center justify-center rounded-full bg-[#2a231e] px-8 py-4 text-[15px] font-medium text-[#f6e9d0] transition duration-300 hover:bg-[#3d322b]">
+              Continue shopping
+            </Link>
+          </div>
         </main>
       </ShopShell>
     );
@@ -329,6 +441,11 @@ export default function CheckoutPage() {
             {/* mobile: button under the form */}
             <div className="lg:hidden">
               {delivery > 0 && <p className="mb-3 text-[13.5px] text-[#6a5c4f]">Add {inr(FREE_DELIVERY_ABOVE - subtotal)} more for free delivery.</p>}
+              {apiError && (
+                <div className="mb-4 rounded-xl bg-red-50 p-3.5 text-sm text-red-700 border border-red-200">
+                  {apiError}
+                </div>
+              )}
               <PlaceButton busy={busy} label={f.pay === "online" ? "Pay now" : "Place order"} total={total} />
               <Link href="/cart" className="mt-5 inline-block text-[15px] font-medium underline underline-offset-4 transition-colors hover:text-[#b8613a]">
                 ← Back to cart
