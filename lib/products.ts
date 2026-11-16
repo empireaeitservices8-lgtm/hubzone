@@ -73,6 +73,70 @@ const DETAILS: Record<string, { desc?: string; ingredients?: string }> = {
     desc: "HUBCARE Ayurveda Soap is a traditional herbal soap crafted with natural Ayurvedic ingredients for gentle cleansing and daily skin care. Made with a blend of herbs and natural extracts, it helps refresh and nourish the skin while maintaining cleanliness.",
     ingredients: "Coconut Oil, Coconut Cake, Turmeric, Ramacham, Green Gram, Karchura, Chitalam,Elaneergam, Water",
   },
+    neelayamari_shampoo: {
+    desc: "Neelayamari Shampoo is a herbal hair wash from HubCare, inspired by the traditional Ayurvedic use of Neelayamari. It cleanses the scalp gently and leaves hair feeling fresh and soft.",
+  },
+  sandal_soap: {
+    desc: "A natural skin care soap from HubCare for gentle daily cleansing. It leaves the skin feeling clean, fresh and soft.",
+  },
+  turmeric_soap: {
+    desc: "A herbal soap made with the traditional goodness of turmeric. A simple, gentle bath soap for everyday use.",
+  },
+  mukhakanthi_soap: {
+    desc: "Mukhakanthi Soap is an Ayurvedic-style soap from HubCare for daily face and body care. It cleanses gently and leaves the skin fresh.",
+  },
+  mukhakanthi_powder: {
+    desc: "A fine herbal powder from HubCare for traditional face care. Mix it with water, rose water or milk and use it as part of your regular skin care routine.",
+  },
+
+  perfumes: {
+    desc: "A signature perfume from HubNoir with bold, long-lasting notes. Made for every mood and occasion, in a 50 ml bottle.",
+  },
+  fragrances: {
+    desc: "A rich, lasting fragrance from HubNoir that stays with you through the day. Comes in a 50 ml bottle.",
+  },
+
+  dosa_tawa: {
+    desc: "A sturdy dosa tawa from HubCook for crisp, evenly cooked dosas and rotis. Built for everyday use in the kitchen.",
+  },
+  fry_pan: {
+    desc: "A triply fry pan from HubCook for everyday frying and sautéing. Heats evenly and is made to last.",
+  },
+  bowl: {
+    desc: "The Uro Bowl from HubCook is a practical kitchen bowl for mixing, serving and storing. Easy to use every day.",
+  },
+
+  "Wayanad-Coffee-125": {
+    desc: "100% pure Wayanad coffee from HubCof in a 125 g pack. No chicory and no fillers, just rich aroma and bold taste.",
+  },
+  "Wayanad-Coffee-250": {
+    desc: "100% pure Wayanad coffee from HubCof in a 250 g pack. No chicory and no fillers, just rich aroma and bold taste.",
+  },
+  "Wayanad-Coffee-500": {
+    desc: "100% pure Wayanad coffee from HubCof in a 500 g pack. No chicory and no fillers, just rich aroma and bold taste. A good size for the whole family.",
+  },
+
+  brass_cleaner: {
+    desc: "A brass cleaner from HubWash that helps remove tarnish and bring back the shine of brass utensils and lamps.",
+  },
+  car_wash: {
+    desc: "A car wash liquid from HubWash that helps lift dirt and dust from your vehicle and leaves a clean finish.",
+  },
+  liquid_detergent: {
+    desc: "A liquid laundry detergent from HubWash that helps remove dirt and stains and leaves clothes fresh.",
+  },
+  fabric_stiff: {
+    desc: "A fabric stiffener from HubWash that gives cotton clothes and sarees a crisp, neat finish.",
+  },
+  floor_cleaner: {
+    desc: "A floor cleaner from HubWash that helps clean and freshen floors, leaving them spotless and pleasantly scented.",
+  },
+  hand_wash: {
+    desc: "A hand wash from HubWash that cleans hands gently and leaves them feeling fresh.",
+  },
+  toilet_cleaner: {
+    desc: "A toilet cleaner from HubWash that helps remove stains and keeps the bowl clean and hygienic.",
+  },
 
 };
 
