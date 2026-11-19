@@ -1,11 +1,38 @@
 import type { Metadata } from "next";
 import { display } from "@/lib/fonts";
 import ContactForm from "./ContactForm";
+import { getBreadcrumbSchema, getLocalBusinessSchema, SITE_NAME, SITE_URL } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Contact us | HubZone",
+  title: "Contact Us | HubZone - Kolenchery, Perumbavoor, Kerala",
   description:
-    "Message HubZone on WhatsApp, call us or visit us at Kolenchery, Perumbavoor Road, Arakkapady.",
+    "Get in touch with HubZone. Message us on WhatsApp, call +91 87144 10040, or visit our office at Kolenchery, Perumbavoor Road, Jai Bharat College Stop, Arakkapady, Kerala.",
+  alternates: {
+    canonical: `${SITE_URL}/contact`,
+  },
+  openGraph: {
+    title: "Contact Us | HubZone",
+    description:
+      "Message HubZone on WhatsApp, call us or visit us at Kolenchery, Perumbavoor Road, Arakkapady, Kerala.",
+    url: `${SITE_URL}/contact`,
+    siteName: SITE_NAME,
+    type: "website",
+    images: [
+      {
+        url: "/logo.png",
+        width: 800,
+        height: 800,
+        alt: "Contact HubZone",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Contact Us | HubZone",
+    description:
+      "Get in touch with HubZone via WhatsApp, phone, or visit our head office in Kerala.",
+    images: ["/logo.png"],
+  },
 };
 
 /* -------------------------------------------------------------------------- */
@@ -73,69 +100,98 @@ const CONTACTS = [
 /* -------------------------------------------------------------------------- */
 
 export default function ContactPage() {
+  const breadcrumbSchema = getBreadcrumbSchema([
+    { name: "Home", url: "/" },
+    { name: "Contact Us", url: "/contact" },
+  ]);
+
+  const localBusinessSchema = getLocalBusinessSchema();
+
+  const contactPageSchema = {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    name: "Contact HubZone",
+    url: `${SITE_URL}/contact`,
+    description: "Contact information, address, phone numbers, and maps for HubZone in Kerala, India.",
+  };
+
   return (
-    <main className="bg-white text-neutral-900">
-      {/* Hero – dark so the header stays readable */}
-      <section className="bg-[#0e1a15] pb-14 pt-[120px] text-white sm:pb-20 sm:pt-[150px]">
-        <div className="mx-auto max-w-[1200px] px-5 sm:px-8">
-          <h1 className={`${display.className} text-[clamp(2.5rem,7vw,4.5rem)] font-extrabold leading-[1] tracking-tight`}>
-            Contact us
-          </h1>
-          <p className="mt-4 max-w-lg text-base text-white/70 sm:text-lg">
-            Questions about an order or a product? Send us a message and we&rsquo;ll reply within a day.
-          </p>
-        </div>
-      </section>
-
-      {/* Content */}
-      <section className="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 sm:py-16 lg:py-20">
-        <div className="grid gap-12 lg:grid-cols-5 lg:gap-16">
-          {/* Form */}
-          <div className="lg:col-span-3">
-            <h2 className={`${display.className} text-2xl font-extrabold tracking-tight sm:text-3xl`}>Send us a message</h2>
-            <p className="mt-2 text-neutral-500">We&rsquo;ll open WhatsApp with your message ready to send.</p>
-            <div className="mt-8">
-              <ContactForm />
-            </div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactPageSchema) }}
+      />
+      <main className="bg-white text-neutral-900">
+        {/* Hero – dark so the header stays readable */}
+        <section className="bg-[#0e1a15] pb-14 pt-[120px] text-white sm:pb-20 sm:pt-[150px]">
+          <div className="mx-auto max-w-[1200px] px-5 sm:px-8">
+            <h1 className={`${display.className} text-[clamp(2.5rem,7vw,4.5rem)] font-extrabold leading-[1] tracking-tight`}>
+              Contact us
+            </h1>
+            <p className="mt-4 max-w-lg text-base text-white/70 sm:text-lg">
+              Questions about an order or a product? Send us a message and we&rsquo;ll reply within a day.
+            </p>
           </div>
+        </section>
 
-          {/* Details */}
-          <aside className="lg:col-span-2">
-            <h2 className={`${display.className} text-2xl font-extrabold tracking-tight sm:text-3xl`}>Other ways to reach us</h2>
-
-            <ul className="mt-6 divide-y divide-neutral-200 border-y border-neutral-200">
-              {CONTACTS.map((c) => (
-                <li key={c.label}>
-                  <a
-                    href={c.href}
-                    {...(c.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                    className="flex items-start gap-4 py-5 transition-colors hover:bg-neutral-50"
-                  >
-                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-800">
-                      {c.icon}
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block text-sm text-neutral-500">{c.label}</span>
-                      <span className="block break-words font-medium leading-snug text-neutral-900">{c.value}</span>
-                    </span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-
-            <div className="mt-8 overflow-hidden rounded-2xl border border-neutral-200">
-              <iframe
-                title="HubZone location on the map"
-                src={`https://maps.google.com/maps?q=${encodeURIComponent(MAP_QUERY)}&output=embed`}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                className="block h-64 w-full border-0"
-              />
+        {/* Content */}
+        <section className="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 sm:py-16 lg:py-20">
+          <div className="grid gap-12 lg:grid-cols-5 lg:gap-16">
+            {/* Form */}
+            <div className="lg:col-span-3">
+              <h2 className={`${display.className} text-2xl font-extrabold tracking-tight sm:text-3xl`}>Send us a message</h2>
+              <p className="mt-2 text-neutral-500">We&rsquo;ll open WhatsApp with your message ready to send.</p>
+              <div className="mt-8">
+                <ContactForm />
+              </div>
             </div>
-            <p className="mt-4 text-sm text-neutral-500">Since 2018 &nbsp;|&nbsp; LIC NO: KL-02-118168</p>
-          </aside>
-        </div>
-      </section>
-    </main>
+
+            {/* Details */}
+            <aside className="lg:col-span-2">
+              <h2 className={`${display.className} text-2xl font-extrabold tracking-tight sm:text-3xl`}>Other ways to reach us</h2>
+
+              <ul className="mt-6 divide-y divide-neutral-200 border-y border-neutral-200">
+                {CONTACTS.map((c) => (
+                  <li key={c.label}>
+                    <a
+                      href={c.href}
+                      {...(c.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                      className="flex items-start gap-4 py-5 transition-colors hover:bg-neutral-50"
+                    >
+                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-800">
+                        {c.icon}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-sm text-neutral-500">{c.label}</span>
+                        <span className="block break-words font-medium leading-snug text-neutral-900">{c.value}</span>
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-8 overflow-hidden rounded-2xl border border-neutral-200">
+                <iframe
+                  title="HubZone location on the map"
+                  src={`https://maps.google.com/maps?q=${encodeURIComponent(MAP_QUERY)}&output=embed`}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="block h-64 w-full border-0"
+                />
+              </div>
+              <p className="mt-4 text-sm text-neutral-500">Since 2018 &nbsp;|&nbsp; LIC NO: KL-02-118168</p>
+            </aside>
+          </div>
+        </section>
+      </main>
+    </>
   );
 }

@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { getProduct } from "./products";
 import CartToast from "@/components/CartToast";
 import { api, getToken } from "./api";
+import { useAuth } from "./auth";
 
 type Line = { id: string; qty: number };
 
@@ -19,12 +20,7 @@ type CartCtx = {
   clear: () => void;
 };
 
-const KEY = "hubzone-cart";
-
-/** Preview helper: while true, a visitor who has never used the cart starts with these sample products.
- *  Set SEED_DEMO to false (or empty DEMO_CART) before you go live. */
-const SEED_DEMO = false;
-const DEMO_CART: Line[] = [];
+const LEGACY_KEY = "hubzone-cart";
 const MAX = 99;
 const Ctx = createContext<CartCtx | null>(null);
 
@@ -35,39 +31,74 @@ export function useCart() {
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [lines, setLines] = useState<Line[]>([]);
   const [ready, setReady] = useState(false);
   const [toast, setToast] = useState<{ name: string; n: number } | null>(null);
   const [toastOn, setToastOn] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // load the saved cart, and stay in sync with other tabs
+  // Sync with authenticated user and purge old demo cart from localStorage
   useEffect(() => {
-    const read = () => {
+    // Purge legacy demo cart from localStorage if present
+    if (typeof window !== "undefined") {
       try {
-        const raw = localStorage.getItem(KEY);
-        const parsed = raw ? (JSON.parse(raw) as Line[]) : raw === null && SEED_DEMO ? DEMO_CART : [];
-        setLines(parsed.filter((l) => l && getProduct(l.id) && l.qty > 0));
-      } catch {
-        setLines([]);
-      }
-    };
-    read();
-    setReady(true);
-    const onStorage = (e: StorageEvent) => e.key === KEY && read();
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
+        localStorage.removeItem(LEGACY_KEY);
+      } catch {}
+    }
 
-  // save on every change
-  useEffect(() => {
-    if (!ready) return;
+    if (!user) {
+      setLines([]);
+      setReady(true);
+      return;
+    }
+
+    const key = `hubzone_cart_u_${user.id}`;
+    let initialLines: Line[] = [];
     try {
-      localStorage.setItem(KEY, JSON.stringify(lines));
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw) as Line[];
+        initialLines = parsed.filter((l) => l && l.id && l.qty > 0);
+      }
+    } catch {
+      initialLines = [];
+    }
+    setLines(initialLines);
+    setReady(true);
+
+    // Sync live cart from backend
+    if (getToken()) {
+      api.cart
+        .get()
+        .then((res) => {
+          if (res && res.success && Array.isArray(res.items)) {
+            const backendLines: Line[] = res.items
+              .map((it: any) => ({
+                id: it.productId || it.id,
+                qty: it.quantity || it.qty || 1,
+              }))
+              .filter((l) => l.id && l.qty > 0);
+            setLines(backendLines);
+            try {
+              localStorage.setItem(key, JSON.stringify(backendLines));
+            } catch {}
+          }
+        })
+        .catch(() => {});
+    }
+  }, [user]);
+
+  // save on every change when user is authenticated
+  useEffect(() => {
+    if (!ready || !user) return;
+    const key = `hubzone_cart_u_${user.id}`;
+    try {
+      localStorage.setItem(key, JSON.stringify(lines));
     } catch {
       /* storage full or blocked: the cart still works for this visit */
     }
-  }, [lines, ready]);
+  }, [lines, ready, user]);
 
   const add = useCallback((id: string, qty = 1) => {
     const p = getProduct(id);
@@ -108,10 +139,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clear = useCallback(() => {
     setLines([]);
+    if (user) {
+      try {
+        localStorage.removeItem(`hubzone_cart_u_${user.id}`);
+      } catch {}
+    }
     if (getToken()) {
       api.cart.clear().catch(() => {});
     }
-  }, []);
+  }, [user]);
 
   const count = useMemo(() => lines.reduce((s, l) => s + l.qty, 0), [lines]);
   const value = useMemo(() => ({ lines, ready, count, add, setQty, remove, clear }), [lines, ready, count, add, setQty, remove, clear]);

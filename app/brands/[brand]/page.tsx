@@ -8,10 +8,10 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import ProductCard from "@/components/ProductCard";
 import BrandProductSection from "@/components/BrandProductSection";
 import ShopShell, { ShopTop, WRAP } from "@/components/ShopShell";
 import { CATEGORIES, PRODUCTS, sortProducts, type CategoryId, type Product } from "@/lib/products";
+import { getBreadcrumbSchema, SITE_NAME, SITE_URL } from "@/lib/seo";
 
 /* Edit the text here. `about` is the paragraph under the brand name, `points` are the small highlights. */
 const BRAND_INFO: Record<CategoryId, { tagline: string; about: string; points: string[] }> = {
@@ -57,7 +57,38 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const { brand } = await params;
   const c = CATEGORIES.find((x) => x.id === brand);
   if (!c) return {};
-  return { title: `${c.label} | HubZone`, description: BRAND_INFO[c.id].about };
+  const info = BRAND_INFO[c.id];
+  const title = `${c.label} - ${info.tagline} | HubZone`;
+  const url = `${SITE_URL}/brands/${c.id}`;
+
+  return {
+    title,
+    description: info.about,
+    alternates: {
+      canonical: url,
+    },
+    openGraph: {
+      title,
+      description: info.about,
+      url,
+      siteName: SITE_NAME,
+      type: "website",
+      images: [
+        {
+          url: "/logo.png",
+          width: 800,
+          height: 800,
+          alt: `${c.label} on HubZone`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: info.about,
+      images: ["/logo.png"],
+    },
+  };
 }
 
 /* Next 16 wants `params` read inside <Suspense>, so the page shell shows instantly
@@ -98,82 +129,116 @@ async function BrandContent({ params }: { params: Promise<Params> }) {
   } catch {
     // fallback to static PRODUCTS
   }
+  const sortedProducts = sortProducts(products);
   const others = CATEGORIES.filter((c) => c.id !== cat.id);
 
+  const breadcrumbSchema = getBreadcrumbSchema([
+    { name: "Home", url: "/" },
+    { name: "Shop", url: "/shop" },
+    { name: cat.label, url: `/brands/${cat.id}` },
+  ]);
+
+  const brandSchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: `${cat.label} - ${info.tagline}`,
+    description: info.about,
+    url: `${SITE_URL}/brands/${cat.id}`,
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: sortedProducts.map((p, idx) => ({
+        "@type": "ListItem",
+        position: idx + 1,
+        name: p.name,
+        url: `${SITE_URL}/shop/${p.id}`,
+      })),
+    },
+  };
+
   return (
-    <ShopShell>
-      <ShopTop bottom="pb-12 sm:pb-16">
-        {/* Breadcrumbs */}
-        <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-2.5 text-sm text-[#f6e9d0]/65">
-          <Link href="/" className="transition-colors hover:text-[#f6e9d0]">Home</Link>
-          <span className="opacity-50">/</span>
-          <Link href="/shop" className="transition-colors hover:text-[#f6e9d0]">Shop</Link>
-          <span className="opacity-50">/</span>
-          <span className="text-[#f6e9d0]">{cat.label}</span>
-        </nav>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(brandSchema) }}
+      />
+      <ShopShell>
+        <ShopTop bottom="pb-12 sm:pb-16">
+          {/* Breadcrumbs */}
+          <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-2.5 text-sm text-[#f6e9d0]/65">
+            <Link href="/" className="transition-colors hover:text-[#f6e9d0]">Home</Link>
+            <span className="opacity-50">/</span>
+            <Link href="/shop" className="transition-colors hover:text-[#f6e9d0]">Shop</Link>
+            <span className="opacity-50">/</span>
+            <span className="text-[#f6e9d0]">{cat.label}</span>
+          </nav>
 
-        <div className="grid items-end gap-10 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] lg:gap-16">
-          <div>
-            <span
-              className="mb-5 block h-1.5 w-14 rounded-full"
-              style={{ background: cat.tile }}
-              aria-hidden="true"
-            />
-            <h1 className="font-[family-name:var(--font-serif)] text-[length:clamp(48px,9vw,104px)] font-medium leading-[1] tracking-[-0.01em]">
-              {cat.label}
-            </h1>
-            <p className="mt-4 font-[family-name:var(--font-serif)] text-[length:clamp(20px,2.6vw,30px)] leading-snug text-[#f6e9d0]/85">
-              {info.tagline}
-            </p>
+          <div className="grid items-end gap-10 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] lg:gap-16">
+            <div>
+              <span
+                className="mb-5 block h-1.5 w-14 rounded-full"
+                style={{ background: cat.tile }}
+                aria-hidden="true"
+              />
+              <h1 className="font-[family-name:var(--font-serif)] text-[length:clamp(48px,9vw,104px)] font-medium leading-[1] tracking-[-0.01em]">
+                {cat.label}
+              </h1>
+              <p className="mt-4 font-[family-name:var(--font-serif)] text-[length:clamp(20px,2.6vw,30px)] leading-snug text-[#f6e9d0]/85">
+                {info.tagline}
+              </p>
+            </div>
+
+            <div>
+              <p className="max-w-[52ch] text-[16px] leading-relaxed text-[#f6e9d0]/75 sm:text-[17px]">{info.about}</p>
+              <ul className="mt-6 flex flex-wrap gap-2.5">
+                {info.points.map((t) => (
+                  <li
+                    key={t}
+                    className="rounded-full border border-[#f6e9d0]/30 px-4 py-2 text-[13px] font-medium text-[#f6e9d0]"
+                  >
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
+        </ShopTop>
 
-          <div>
-            <p className="max-w-[52ch] text-[16px] leading-relaxed text-[#f6e9d0]/75 sm:text-[17px]">{info.about}</p>
-            <ul className="mt-6 flex flex-wrap gap-2.5">
-              {info.points.map((t) => (
-                <li
-                  key={t}
-                  className="rounded-full border border-[#f6e9d0]/30 px-4 py-2 text-[13px] font-medium text-[#f6e9d0]"
+        <main className={`${WRAP} pb-[72px] pt-10 sm:pb-24 sm:pt-14`}>
+          <BrandProductSection
+            initialProducts={sortedProducts}
+            categoryLabel={cat.label}
+            categoryId={cat.id}
+          />
+
+          {/* Other brands */}
+          <section className="mt-16 border-t border-[#2a231e]/15 pt-10 sm:mt-24" aria-label="Other brands">
+            <h2 className="mb-6 font-[family-name:var(--font-serif)] text-[length:clamp(24px,3vw,34px)] font-medium">
+              More from HubZone
+            </h2>
+            <div className="flex flex-wrap gap-2.5">
+              {others.map((c) => (
+                <Link
+                  key={c.id}
+                  href={`/brands/${c.id}`}
+                  className="rounded-full border border-[#2a231e]/25 px-5 py-2.5 text-[14px] font-medium transition duration-200 hover:border-[#2a231e] hover:bg-[#2a231e] hover:text-[#f6e9d0] active:scale-95"
                 >
-                  {t}
-                </li>
+                  {c.label}
+                </Link>
               ))}
-            </ul>
-          </div>
-        </div>
-      </ShopTop>
-
-      <main className={`${WRAP} pb-[72px] pt-10 sm:pb-24 sm:pt-14`}>
-        <BrandProductSection
-          initialProducts={sortProducts(products)}
-          categoryLabel={cat.label}
-          categoryId={cat.id}
-        />
-
-        {/* Other brands */}
-        <section className="mt-16 border-t border-[#2a231e]/15 pt-10 sm:mt-24" aria-label="Other brands">
-          <h2 className="mb-6 font-[family-name:var(--font-serif)] text-[length:clamp(24px,3vw,34px)] font-medium">
-            More from HubZone
-          </h2>
-          <div className="flex flex-wrap gap-2.5">
-            {others.map((c) => (
               <Link
-                key={c.id}
-                href={`/brands/${c.id}`}
-                className="rounded-full border border-[#2a231e]/25 px-5 py-2.5 text-[14px] font-medium transition duration-200 hover:border-[#2a231e] hover:bg-[#2a231e] hover:text-[#f6e9d0] active:scale-95"
+                href="/shop"
+                className="rounded-full bg-[#2a231e] px-5 py-2.5 text-[14px] font-medium text-[#f6e9d0] transition duration-200 hover:bg-[#b8613a] active:scale-95"
               >
-                {c.label}
+                Shop all products
               </Link>
-            ))}
-            <Link
-              href="/shop"
-              className="rounded-full bg-[#2a231e] px-5 py-2.5 text-[14px] font-medium text-[#f6e9d0] transition duration-200 hover:bg-[#b8613a] active:scale-95"
-            >
-              Shop all products
-            </Link>
-          </div>
-        </section>
-      </main>
-    </ShopShell>
+            </div>
+          </section>
+        </main>
+      </ShopShell>
+    </>
   );
 }

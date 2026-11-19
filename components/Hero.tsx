@@ -199,6 +199,7 @@ export default function Hero() {
         <div className="grid flex-1 items-center">
           {SLIDES.map((s, i) => {
             const active = i === index;
+            const HeadingTag = i === 0 ? "h1" : "h2";
             return (
               <div
                 key={s.title[0]}
@@ -214,9 +215,8 @@ export default function Hero() {
                     <span className="h-px w-12 bg-white/40" />
                   </div>
 
-                  {/* First slide: title uses the logo colours. Other slides: cream text.
-                      (drop-shadow instead of text-shadow, because text-shadow shows through gradient text) */}
-                  <h1
+                  {/* First slide: primary h1. Other slides: h2 */}
+                  <HeadingTag
                     className={`${display.className} mt-4 text-[clamp(2.25rem,6vw,5.5rem)] font-bold leading-[0.98] tracking-[-0.05em] sm:mt-5 ${s.showLogo
                         ? `w-fit pb-[0.08em] drop-shadow-[0_2px_20px_rgba(0,0,0,0.7)] ${LOGO_GRADIENT}`
                         : "text-[#f7f4f0] [text-shadow:0_2px_26px_rgba(0,0,0,0.7)]"
@@ -225,7 +225,7 @@ export default function Hero() {
                     {s.title[0]}
                     <br />
                     {s.title[1]}
-                  </h1>
+                  </HeadingTag>
 
                   <p
                     className={`${display.className} mt-4 max-w-md text-[clamp(1rem,1.3vw,1.2rem)] font-medium leading-snug tracking-[-0.01em] text-white [text-shadow:0_1px_16px_rgba(0,0,0,0.75)] sm:mt-5 ${reveal(active, "delay-500")}`}

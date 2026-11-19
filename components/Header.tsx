@@ -86,7 +86,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
   const pathname = usePathname();
   const { user, isAdmin, logout } = useAuth();
   const { count } = useCart();
-  const effectiveCartCount = count || cartCount;
+  const effectiveCartCount = user ? (count || cartCount) : 0;
 
   const [open, setOpen] = useState(false); // full-screen menu (phones/tablets)
   const [menu, setMenu] = useState<MenuId>(null); // desktop dropdown that is open
