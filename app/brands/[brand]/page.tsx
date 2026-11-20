@@ -12,6 +12,7 @@ import BrandProductSection from "@/components/BrandProductSection";
 import ShopShell, { ShopTop, WRAP } from "@/components/ShopShell";
 import { CATEGORIES, PRODUCTS, sortProducts, type CategoryId, type Product } from "@/lib/products";
 import { getBreadcrumbSchema, SITE_NAME, SITE_URL } from "@/lib/seo";
+import { BACKEND_URL } from "@/lib/api";
 
 /* Edit the text here. `about` is the paragraph under the brand name, `points` are the small highlights. */
 const BRAND_INFO: Record<CategoryId, { tagline: string; about: string; points: string[] }> = {
@@ -117,7 +118,7 @@ async function BrandContent({ params }: { params: Promise<Params> }) {
   const info = BRAND_INFO[cat.id];
   let products: Product[] = PRODUCTS.filter((p) => p.cat === cat.id);
   try {
-    const res = await fetch(`http://localhost:5000/api/products?category=${encodeURIComponent(cat.id)}`, {
+    const res = await fetch(`${BACKEND_URL}/api/products?category=${encodeURIComponent(cat.id)}`, {
       next: { revalidate: 60 },
     });
     if (res.ok) {

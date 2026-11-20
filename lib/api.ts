@@ -1,11 +1,16 @@
 /**
  * HubZone API client - wraps calls to the Node/Express backend.
- * Uses relative `/api` paths (which Next.js proxies) with fallback to `http://localhost:5000/api`.
+ * Uses relative `/api` paths in the browser (proxied by Next.js rewrites)
+ * and connects to the live Render backend by default.
  */
 
-export const API_BASE = typeof window !== "undefined"
-  ? (process.env.NEXT_PUBLIC_API_URL || "")
-  : "http://localhost:5000";
+export const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || "https://hubzone-backend.onrender.com";
+
+export const API_BASE =
+  typeof window !== "undefined"
+    ? (process.env.NEXT_PUBLIC_API_URL || "")
+    : BACKEND_URL;
 
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;

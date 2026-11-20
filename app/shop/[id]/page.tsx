@@ -10,6 +10,7 @@ import ProductGallery from "./ProductGallery";
 import ProductReviews from "./ProductReviews";
 import ProductDetailGuard from "@/components/ProductDetailGuard";
 import { getBreadcrumbSchema, getProductSchema, SITE_NAME, SITE_URL } from "@/lib/seo";
+import { BACKEND_URL } from "@/lib/api";
 
 /** Next.js 15/16: params is a Promise. */
 type Props = { params: Promise<{ id: string }> };
@@ -20,7 +21,7 @@ export function generateStaticParams() {
 
 async function fetchProductData(id: string): Promise<Product | null> {
   try {
-    const res = await fetch(`http://localhost:5000/api/product/${encodeURIComponent(id)}`, {
+    const res = await fetch(`${BACKEND_URL}/api/product/${encodeURIComponent(id)}`, {
       next: { revalidate: 60 },
     });
     if (res.ok) {
@@ -110,7 +111,7 @@ async function ProductContent({ params }: Props) {
 
   let allProducts: Product[] = PRODUCTS;
   try {
-    const res = await fetch(`http://localhost:5000/api/products`, { next: { revalidate: 60 } });
+    const res = await fetch(`${BACKEND_URL}/api/products`, { next: { revalidate: 60 } });
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {

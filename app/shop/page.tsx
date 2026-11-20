@@ -4,6 +4,7 @@ import ShopShell, { ShopTop } from "@/components/ShopShell";
 import ShopView from "@/components/ShopView";
 import { PRODUCTS, sortProducts, type Product } from "@/lib/products";
 import { getBreadcrumbSchema, SITE_NAME, SITE_URL } from "@/lib/seo";
+import { BACKEND_URL } from "@/lib/api";
 
 export const metadata: Metadata = {
   title: "Shop All Products | HubCare, HubNoir, HubCook, HubCof & HubWash",
@@ -67,7 +68,7 @@ export default function ShopPage() {
 async function ShopData() {
   let initialProducts: Product[] = PRODUCTS;
   try {
-    const res = await fetch("http://localhost:5000/api/products", { next: { revalidate: 60 } });
+    const res = await fetch(`${BACKEND_URL}/api/products`, { next: { revalidate: 60 } });
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {

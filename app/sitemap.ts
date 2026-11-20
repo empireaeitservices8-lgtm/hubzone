@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { CATEGORIES, PRODUCTS, type Product } from "@/lib/products";
 import { SITE_URL } from "@/lib/seo";
+import { BACKEND_URL } from "@/lib/api";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
@@ -44,7 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Dynamic products
   let products: Product[] = PRODUCTS;
   try {
-    const res = await fetch("http://localhost:5000/api/products", {
+    const res = await fetch(`${BACKEND_URL}/api/products`, {
       next: { revalidate: 3600 },
     });
     if (res.ok) {

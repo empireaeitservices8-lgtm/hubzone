@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://hubzone-backend.onrender.com";
+
 const nextConfig: NextConfig = {
   /* config options here */
   images: {
@@ -8,17 +10,21 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'hubzone-backend.onrender.com',
+      },
     ],
   },
   async rewrites() {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:5000/api/:path*',
+        destination: `${BACKEND_URL}/api/:path*`,
       },
       {
         source: '/uploads/:path*',
-        destination: 'http://localhost:5000/uploads/:path*',
+        destination: `${BACKEND_URL}/uploads/:path*`,
       },
     ];
   },
