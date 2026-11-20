@@ -67,7 +67,7 @@ export default function ShopPage() {
 async function ShopData() {
   let initialProducts: Product[] = PRODUCTS;
   try {
-    const res = await fetch("http://localhost:5000/api/products", { cache: "no-store" });
+    const res = await fetch("http://localhost:5000/api/products", { next: { revalidate: 60 } });
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {

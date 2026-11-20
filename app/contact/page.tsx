@@ -6,14 +6,14 @@ import { getBreadcrumbSchema, getLocalBusinessSchema, SITE_NAME, SITE_URL } from
 export const metadata: Metadata = {
   title: "Contact Us | HubZone - Kolenchery, Perumbavoor, Kerala",
   description:
-    "Get in touch with HubZone. Message us on WhatsApp, call +91 87144 10040, or visit our office at Kolenchery, Perumbavoor Road, Jai Bharat College Stop, Arakkapady, Kerala.",
+    "Get in touch with HubZone via email or phone. Send us a message or visit our office at Kolenchery, Perumbavoor Road, Jai Bharat College Stop, Arakkapady, Kerala.",
   alternates: {
     canonical: `${SITE_URL}/contact`,
   },
   openGraph: {
     title: "Contact Us | HubZone",
     description:
-      "Message HubZone on WhatsApp, call us or visit us at Kolenchery, Perumbavoor Road, Arakkapady, Kerala.",
+      "Send an email to HubZone, call us or visit us at Kolenchery, Perumbavoor Road, Arakkapady, Kerala.",
     url: `${SITE_URL}/contact`,
     siteName: SITE_NAME,
     type: "website",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Contact Us | HubZone",
     description:
-      "Get in touch with HubZone via WhatsApp, phone, or visit our head office in Kerala.",
+      "Send an email to HubZone, call us or visit our head office in Kerala.",
     images: ["/logo.png"],
   },
 };
@@ -39,9 +39,10 @@ export const metadata: Metadata = {
 /*  Details – edit here                                                        */
 /* -------------------------------------------------------------------------- */
 
+const EMAIL_ADDRESS = "hubzone6767@gmail.com";
+const EMAIL_MAILTO = "mailto:hubzone6767@gmail.com";
 const PHONE_DISPLAY = "+91 87144 10040";
 const PHONE_TEL = "tel:+918714410040";
-const WHATSAPP = "https://api.whatsapp.com/send?phone=918714410040";
 const INSTAGRAM_URL = "https://www.instagram.com/hub_zone_park?dlrf=N3k3bGRvYXp2bGJ0";
 const INSTAGRAM_HANDLE = "@hub_zone_park";
 const ADDRESS = "Kolenchery, Perumbavoor Road, Jai Bharat College Stop, Arakkapady";
@@ -64,22 +65,26 @@ const p = {
   "aria-hidden": true,
 };
 
+const Mail = () => (
+  <svg {...p}>
+    <rect width="20" height="16" x="2" y="4" rx="2" />
+    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+  </svg>
+);
+
 const Phone = () => (
   <svg {...p}>
     <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z" />
   </svg>
 );
-const Chat = () => (
-  <svg {...p}>
-    <path d="M21 11.5a8.4 8.4 0 0 1-12.3 7.4L3 20.5l1.7-5.4A8.4 8.4 0 1 1 21 11.5Z" />
-  </svg>
-);
+
 const Pin = () => (
   <svg {...p}>
     <path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11z" />
     <circle cx="12" cy="10" r="2.5" />
   </svg>
 );
+
 const Insta = () => (
   <svg {...p}>
     <rect x="3" y="3" width="18" height="18" rx="5" />
@@ -89,8 +94,8 @@ const Insta = () => (
 );
 
 const CONTACTS = [
+  { label: "Email us", value: EMAIL_ADDRESS, href: EMAIL_MAILTO, icon: <Mail />, external: false },
   { label: "Call us", value: PHONE_DISPLAY, href: PHONE_TEL, icon: <Phone />, external: false },
-  { label: "WhatsApp", value: PHONE_DISPLAY, href: WHATSAPP, icon: <Chat />, external: true },
   { label: "Visit us", value: ADDRESS, href: DIRECTIONS, icon: <Pin />, external: true },
   { label: "Instagram", value: INSTAGRAM_HANDLE, href: INSTAGRAM_URL, icon: <Insta />, external: true },
 ];
@@ -112,7 +117,7 @@ export default function ContactPage() {
     "@type": "ContactPage",
     name: "Contact HubZone",
     url: `${SITE_URL}/contact`,
-    description: "Contact information, address, phone numbers, and maps for HubZone in Kerala, India.",
+    description: "Contact information, email, phone numbers, and location map for HubZone in Kerala, India.",
   };
 
   return (
@@ -130,14 +135,14 @@ export default function ContactPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(contactPageSchema) }}
       />
       <main className="bg-white text-neutral-900">
-        {/* Hero – dark so the header stays readable */}
+        {/* Hero */}
         <section className="bg-[#0e1a15] pb-14 pt-[120px] text-white sm:pb-20 sm:pt-[150px]">
           <div className="mx-auto max-w-[1200px] px-5 sm:px-8">
             <h1 className={`${display.className} text-[clamp(2.5rem,7vw,4.5rem)] font-extrabold leading-[1] tracking-tight`}>
               Contact us
             </h1>
             <p className="mt-4 max-w-lg text-base text-white/70 sm:text-lg">
-              Questions about an order or a product? Send us a message and we&rsquo;ll reply within a day.
+              Questions about an order, our products, or partnerships? Send us an email and we&rsquo;ll reply within 24 hours.
             </p>
           </div>
         </section>
@@ -147,8 +152,8 @@ export default function ContactPage() {
           <div className="grid gap-12 lg:grid-cols-5 lg:gap-16">
             {/* Form */}
             <div className="lg:col-span-3">
-              <h2 className={`${display.className} text-2xl font-extrabold tracking-tight sm:text-3xl`}>Send us a message</h2>
-              <p className="mt-2 text-neutral-500">We&rsquo;ll open WhatsApp with your message ready to send.</p>
+              <h2 className={`${display.className} text-2xl font-extrabold tracking-tight sm:text-3xl`}>Send us an email</h2>
+              <p className="mt-2 text-neutral-500">Fill in your details below and your message will be delivered directly to our email inbox.</p>
               <div className="mt-8">
                 <ContactForm />
               </div>

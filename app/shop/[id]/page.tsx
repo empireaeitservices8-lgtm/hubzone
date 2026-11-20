@@ -21,7 +21,7 @@ export function generateStaticParams() {
 async function fetchProductData(id: string): Promise<Product | null> {
   try {
     const res = await fetch(`http://localhost:5000/api/product/${encodeURIComponent(id)}`, {
-      cache: "no-store",
+      next: { revalidate: 60 },
     });
     if (res.ok) {
       const data = await res.json();
@@ -110,7 +110,7 @@ async function ProductContent({ params }: Props) {
 
   let allProducts: Product[] = PRODUCTS;
   try {
-    const res = await fetch(`http://localhost:5000/api/products`, { cache: "no-store" });
+    const res = await fetch(`http://localhost:5000/api/products`, { next: { revalidate: 60 } });
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {

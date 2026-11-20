@@ -12,8 +12,10 @@ type CartCtx = {
   lines: Line[];
   /** false until the saved cart has been read from the browser (avoids a flash of "empty cart") */
   ready: boolean;
-  /** total number of items (sum of quantities) */
+  /** count of different products in the cart (unique items) */
   count: number;
+  /** total units/quantity across all items in cart */
+  totalQuantity: number;
   add: (id: string, qty?: number) => void;
   setQty: (id: string, qty: number) => void;
   remove: (id: string) => void;
@@ -149,8 +151,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
-  const count = useMemo(() => lines.reduce((s, l) => s + l.qty, 0), [lines]);
-  const value = useMemo(() => ({ lines, ready, count, add, setQty, remove, clear }), [lines, ready, count, add, setQty, remove, clear]);
+  const count = useMemo(() => lines.length, [lines]);
+  const totalQuantity = useMemo(() => lines.reduce((s, l) => s + l.qty, 0), [lines]);
+  const value = useMemo(
+    () => ({ lines, ready, count, totalQuantity, add, setQty, remove, clear }),
+    [lines, ready, count, totalQuantity, add, setQty, remove, clear]
+  );
 
   return (
     <Ctx.Provider value={value}>

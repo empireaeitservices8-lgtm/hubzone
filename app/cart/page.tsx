@@ -114,7 +114,7 @@ export default function CartPage() {
           Your cart
         </h1>
         <p className="text-base text-[#f6e9d0]/65">
-          {!ready ? "\u00a0" : count === 0 ? "Nothing here yet" : `${count} ${count === 1 ? "item" : "items"} ready to order`}
+          {!ready ? "\u00a0" : count === 0 ? "Nothing here yet" : `${count} ${count === 1 ? "product" : "products"} ready to order`}
         </p>
       </ShopTop>
 

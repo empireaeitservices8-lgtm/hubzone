@@ -337,7 +337,7 @@ export default function CheckoutPage() {
         <h1 className="mb-2.5 font-[family-name:var(--font-serif)] text-[length:clamp(44px,8vw,92px)] font-medium leading-[1.02] tracking-[-0.01em]">
           Checkout
         </h1>
-        <p className="text-base text-[#f6e9d0]/65">{!ready ? "\u00a0" : `${count} ${count === 1 ? "item" : "items"} · ${inr(total)}`}</p>
+        <p className="text-base text-[#f6e9d0]/65">{!ready ? "\u00a0" : `${count} ${count === 1 ? "product" : "products"} · ${inr(total)}`}</p>
       </ShopTop>
 
       <main className={`${WRAP} min-h-[420px] pb-20 pt-7 sm:pb-[110px] sm:pt-12`}>

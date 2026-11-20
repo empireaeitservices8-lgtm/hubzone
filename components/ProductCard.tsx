@@ -43,7 +43,8 @@ export function TileArt({
   pad?: string;
   active?: boolean;
 }) {
-  const candidates = HAS_EXT.test(src) ? [src] : EXTS.map((e) => `${src}.${e}`);
+  const isRemote = src.startsWith("http://") || src.startsWith("https://") || src.startsWith("//");
+  const candidates = isRemote || HAS_EXT.test(src) ? [src] : EXTS.map((e) => `${src}.${e}`);
   const [n, setN] = useState(0);
   const [ok, setOk] = useState(true);
 

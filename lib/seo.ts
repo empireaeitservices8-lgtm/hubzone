@@ -154,7 +154,7 @@ export function getProductSchema(product: {
       url: `${SITE_URL}/shop/${product.id}`,
       priceCurrency: "INR",
       price: currentPrice.toFixed(2),
-      priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+      priceValidUntil: "2027-12-31",
       itemCondition: "https://schema.org/NewCondition",
       availability: isOutOfStock
         ? "https://schema.org/OutOfStock"

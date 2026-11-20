@@ -118,7 +118,7 @@ async function BrandContent({ params }: { params: Promise<Params> }) {
   let products: Product[] = PRODUCTS.filter((p) => p.cat === cat.id);
   try {
     const res = await fetch(`http://localhost:5000/api/products?category=${encodeURIComponent(cat.id)}`, {
-      cache: "no-store",
+      next: { revalidate: 60 },
     });
     if (res.ok) {
       const data = await res.json();
