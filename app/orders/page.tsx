@@ -318,15 +318,27 @@ export default function MyOrdersPage() {
                         {order.address}, {order.city} {order.pin} · Phone: {order.phone}
                       </div>
 
-                      {order.orderStatus === "Placed" && (
-                        <button
-                          onClick={() => handleCancel(order.id)}
-                          disabled={cancellingId === String(order.id)}
-                          className="rounded-full border border-red-300 px-4 py-1.5 font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-50"
-                        >
-                          {cancellingId === String(order.id) ? "Cancelling..." : "Cancel Order"}
-                        </button>
-                      )}
+                      <div className="flex items-center gap-2.5">
+                        {order.paymentMethod?.includes("Online") && order.orderStatus !== "Cancelled" && (
+                          <a
+                            href="https://razorpay.me/@hybriduniversalbusinesszone"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 rounded-full bg-[#0c2340] px-4 py-1.5 font-semibold text-white transition hover:bg-[#07172b]"
+                          >
+                            Pay on Razorpay ↗
+                          </a>
+                        )}
+                        {order.orderStatus === "Placed" && (
+                          <button
+                            onClick={() => handleCancel(order.id)}
+                            disabled={cancellingId === String(order.id)}
+                            className="rounded-full border border-red-300 px-4 py-1.5 font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-50"
+                          >
+                            {cancellingId === String(order.id) ? "Cancelling..." : "Cancel Order"}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

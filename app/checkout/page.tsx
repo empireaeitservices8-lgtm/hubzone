@@ -15,6 +15,26 @@ import { toast } from "sonner";
 const FREE_DELIVERY_ABOVE = 499;
 const DELIVERY_FEE = 49;
 const COD_FEE = 0;
+const RAZORPAY_ME_URL = process.env.NEXT_PUBLIC_RAZORPAY_ME_URL || "https://razorpay.me/@hybriduniversalbusinesszone";
+
+function loadRazorpayScript(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined") return resolve(false);
+    if ((window as any).Razorpay) return resolve(true);
+    const existing = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+    if (existing) {
+      existing.addEventListener("load", () => resolve(true));
+      existing.addEventListener("error", () => resolve(false));
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
 
 const STATES = [
   "Kerala", "Tamil Nadu", "Karnataka", "Andhra Pradesh", "Telangana", "Maharashtra", "Goa", "Gujarat",
@@ -154,6 +174,8 @@ export default function CheckoutPage() {
   const [errors, setErrors] = useState<Errors>({});
   const [busy, setBusy] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const [placedPayMethod, setPlacedPayMethod] = useState<"online" | "cod">("online");
+  const [placedTotal, setPlacedTotal] = useState(0);
   const [apiError, setApiError] = useState("");
 
   useEffect(() => {
@@ -210,35 +232,124 @@ export default function CheckoutPage() {
     }
     setBusy(true);
     setApiError("");
-    try {
-      const orderPayload = {
-        name: f.name,
-        phone: f.phone,
-        email: f.email || (user ? user.email : ""),
-        address: `${f.address}${f.landmark ? `, Near ${f.landmark}` : ""}`,
-        city: f.city,
-        state: f.state,
-        pin: f.pin,
-        paymentMethod: f.pay === "cod" ? "Cash on Delivery" : "Online Payment",
-        subtotal,
-        deliveryFee: delivery,
-        totalAmount: total,
-        items: items.map((it) => ({
-          id: it.p.id,
-          name: it.p.name,
-          price: eff(it.p),
-          originalPrice: it.p.price,
-          qty: it.qty,
-          cat: it.p.cat,
-          img: it.p.img,
-        })),
-      };
 
+    const orderPayload = {
+      name: f.name,
+      phone: f.phone,
+      email: f.email || (user ? user.email : ""),
+      address: `${f.address}${f.landmark ? `, Near ${f.landmark}` : ""}`,
+      city: f.city,
+      state: f.state,
+      pin: f.pin,
+      paymentMethod: f.pay === "cod" ? "Cash on Delivery" : "Online Payment (Razorpay)",
+      subtotal,
+      deliveryFee: delivery,
+      totalAmount: total,
+      items: items.map((it) => ({
+        id: it.p.id,
+        name: it.p.name,
+        price: eff(it.p),
+        originalPrice: it.p.price,
+        qty: it.qty,
+        cat: it.p.cat,
+        img: it.p.img,
+      })),
+    };
+
+    if (f.pay === "cod") {
+      try {
+        const res = await api.orders.create(orderPayload);
+        const placedNum = res.order?.orderNumber || "HZ" + Date.now().toString().slice(-7);
+        setPlacedPayMethod("cod");
+        setPlacedTotal(total);
+        setOrderId(placedNum);
+        toast.success(`Order placed successfully! Order #${placedNum}`);
+        clear();
+      } catch (err: any) {
+        toast.error(err.message || "Failed to place order.");
+        setApiError(err.message || "Failed to place order. Please try again.");
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
+
+    // Online payment via Razorpay
+    try {
+      // Check if standard Razorpay API keys are configured in backend
+      const configRes = await api.payment.getConfig().catch(() => null);
+
+      if (configRes && configRes.configured && configRes.keyId) {
+        const loaded = await loadRazorpayScript();
+        if (loaded) {
+          const rzpOrder = await api.payment.createRazorpayOrder(total);
+          const options = {
+            key: rzpOrder.keyId || configRes.keyId,
+            amount: rzpOrder.amount,
+            currency: rzpOrder.currency || "INR",
+            name: "HubZone",
+            description: `Order payment for ${items.length} ${items.length === 1 ? "product" : "products"}`,
+            image: "/logo.png",
+            order_id: rzpOrder.orderId,
+            handler: async function (response: any) {
+              try {
+                setBusy(true);
+                const verifyRes = await api.payment.verifyRazorpayPayment({
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                  orderPayload,
+                });
+                const placedNum = verifyRes.order?.orderNumber || "HZ" + Date.now().toString().slice(-7);
+                setPlacedPayMethod("online");
+                setPlacedTotal(total);
+                setOrderId(placedNum);
+                toast.success(`Payment verified! Order #${placedNum} placed successfully.`);
+                clear();
+              } catch (verifyErr: any) {
+                toast.error(verifyErr.message || "Payment verification failed.");
+                setApiError(verifyErr.message || "Payment verification failed.");
+              } finally {
+                setBusy(false);
+              }
+            },
+            prefill: {
+              name: f.name,
+              email: f.email || (user ? user.email : ""),
+              contact: f.phone,
+            },
+            theme: { color: "#2a231e" },
+            modal: {
+              ondismiss: function () {
+                setBusy(false);
+              },
+            },
+          };
+
+          const rzp = new (window as any).Razorpay(options);
+          rzp.on("payment.failed", function (response: any) {
+            setBusy(false);
+            const errMsg = response.error?.description || "Payment failed. Please try again.";
+            toast.error(errMsg);
+            setApiError(errMsg);
+          });
+          rzp.open();
+          return;
+        }
+      }
+
+      // If API keys are not configured yet, register order and open your official Razorpay.me instant link!
       const res = await api.orders.create(orderPayload);
       const placedNum = res.order?.orderNumber || "HZ" + Date.now().toString().slice(-7);
+      setPlacedPayMethod("online");
+      setPlacedTotal(total);
       setOrderId(placedNum);
-      toast.success(`Order placed successfully! Order #${placedNum}`);
+      toast.success(`Order #${placedNum} reserved! Opening Razorpay to complete payment...`);
       clear();
+
+      if (typeof window !== "undefined") {
+        window.open(RAZORPAY_ME_URL, "_blank");
+      }
     } catch (err: any) {
       toast.error(err.message || "Failed to place order.");
       setApiError(err.message || "Failed to place order. Please try again.");
@@ -299,13 +410,15 @@ export default function CheckoutPage() {
 
   /* ---------- order placed ---------- */
   if (orderId) {
+    const isOnline = placedPayMethod === "online";
+
     return (
       <ShopShell>
         <ShopTop bottom="pb-10 sm:pb-14">
           <h1 className="mb-2.5 font-[family-name:var(--font-serif)] text-[length:clamp(44px,8vw,92px)] font-medium leading-[1.02] tracking-[-0.01em]">
-            Order placed
+            {isOnline ? "Order Reserved" : "Order Placed"}
           </h1>
-          <p className="text-base text-[#f6e9d0]/65">Order {orderId}</p>
+          <p className="text-base text-[#f6e9d0]/65">Order #{orderId}</p>
         </ShopTop>
         <main className={`${WRAP} flex min-h-[420px] flex-col items-center py-14 text-center sm:py-20`}>
           <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-[#2e7d32]/10 text-[#2e7d32]">
@@ -313,10 +426,42 @@ export default function CheckoutPage() {
               <path d="m5 12.5 4.5 4.5L19 7.5" />
             </svg>
           </div>
-          <h2 className="font-[family-name:var(--font-serif)] text-[length:clamp(30px,4vw,44px)] font-medium leading-[1.1]">Thank you, {f.name.split(" ")[0]}</h2>
-          <p className="mt-3 max-w-[460px] text-[#6a5c4f]">
-            We&apos;ve confirmed your order <strong>{orderId}</strong>. We&apos;ll pack your items and update you when it ships to {f.city}.
+          <h2 className="font-[family-name:var(--font-serif)] text-[length:clamp(30px,4vw,44px)] font-medium leading-[1.1]">Thank you, {f.name.split(" ")[0]}!</h2>
+          <p className="mt-3 max-w-[480px] text-[#6a5c4f]">
+            We&apos;ve registered your order <strong>#{orderId}</strong>. We will deliver it to {f.city || "your address"}.
           </p>
+
+          {isOnline && (
+            <div className="mt-8 w-full max-w-lg rounded-3xl border border-[#2a231e]/15 bg-white p-6 sm:p-8 shadow-sm">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3.5 py-1 text-xs font-semibold text-emerald-800 border border-emerald-200 mb-3">
+                <span className="h-2 w-2 rounded-full bg-emerald-600 animate-pulse" />
+                Razorpay Payment Link Active
+              </span>
+              <h3 className="font-[family-name:var(--font-serif)] text-2xl font-medium text-[#2a231e]">
+                Amount: {inr(placedTotal || total)}
+              </h3>
+              <p className="mt-2 text-sm text-[#6a5c4f]">
+                Complete your payment securely on our official Razorpay portal via <strong>Google Pay, PhonePe, Paytm, UPI, Cards, or Net Banking</strong>:
+              </p>
+              <div className="mt-6 flex flex-col gap-3">
+                <a
+                  href={RAZORPAY_ME_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex w-full items-center justify-center gap-2.5 rounded-full bg-[#0c2340] px-8 py-4 text-[15px] font-semibold text-white shadow-md transition duration-300 hover:bg-[#07172b] active:scale-[0.98]"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z" />
+                  </svg>
+                  Pay {inr(placedTotal || total)} on Razorpay ↗
+                </a>
+                <p className="text-xs text-neutral-400">
+                  Direct payment portal: {RAZORPAY_ME_URL}
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link href="/orders" className="inline-flex items-center justify-center rounded-full bg-[#b8613a] px-8 py-4 text-[15px] font-medium text-white transition duration-300 hover:bg-[#a04e28]">
               Track Your Order Status
@@ -407,9 +552,9 @@ export default function CheckoutPage() {
                 <PayOption
                   checked={f.pay === "online"}
                   onSelect={() => setF((c) => ({ ...c, pay: "online" }))}
-                  title="Pay online"
-                  text="UPI, cards or net banking on a secure payment page."
-                  badge="Recommended"
+                  title="Pay online (Razorpay)"
+                  text="UPI (Google Pay, PhonePe, Paytm), Credit/Debit Cards, Net Banking."
+                  badge="Instant & Secure"
                 />
                 <PayOption
                   checked={f.pay === "cod"}

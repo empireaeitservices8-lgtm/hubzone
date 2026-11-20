@@ -210,5 +210,29 @@ export const api = {
         method: "DELETE",
       }),
   },
+
+  // Razorpay Payment Gateway
+  payment: {
+    getConfig: () =>
+      request<{ success: boolean; configured: boolean; keyId: string | null }>("/payment/razorpay/config"),
+    createRazorpayOrder: (amount: number, receipt?: string) =>
+      request<{ success: boolean; orderId: string; amount: number; currency: string; keyId: string }>(
+        "/payment/razorpay/create-order",
+        {
+          method: "POST",
+          body: JSON.stringify({ amount, receipt }),
+        }
+      ),
+    verifyRazorpayPayment: (payload: {
+      razorpay_order_id: string;
+      razorpay_payment_id: string;
+      razorpay_signature: string;
+      orderPayload: any;
+    }) =>
+      request<{ success: boolean; message: string; order: any }>("/payment/razorpay/verify", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+  },
 };
 
