@@ -13,8 +13,7 @@ const TOPICS = [
   "HubCook (Cookware & Kitchen)",
   "HubCof (Pure Wayanad Coffee)",
   "HubWash (Home Cleaning)",
-  "Order & Tracking Support",
-  "Wholesale & Distribution",
+  "Job Enquiry",
 ];
 
 const FIELD =
