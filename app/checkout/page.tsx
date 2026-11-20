@@ -39,7 +39,7 @@ function validate(f: Form): Errors {
   if (f.name.trim().length < 2) e.name = "Enter your full name";
   if (!/^[6-9]\d{9}$/.test(f.phone)) e.phone = "Enter a 10-digit mobile number";
   if (f.email && !/^\S+@\S+\.\S+$/.test(f.email)) e.email = "Enter a valid email address";
-  if (f.address.trim().length < 6) e.address = "Enter your house number and street";
+  if (f.address.trim().length < 4) e.address = "Enter your house number or house name and street";
   if (f.city.trim().length < 2) e.city = "Enter your town or city";
   if (!/^[1-9]\d{5}$/.test(f.pin)) e.pin = "Enter a 6-digit PIN code";
   return e;
@@ -379,8 +379,8 @@ export default function CheckoutPage() {
               </Card>
 
               <Card title="Delivery address">
-                <Field label="House number and street" error={errors.address} className="sm:col-span-2">
-                  <input id="f-address" autoComplete="address-line1" value={f.address} onChange={set("address")} className={inputCls(errors.address)} placeholder="12/345, Temple Road" />
+                <Field label="House number or house name and street" error={errors.address} className="sm:col-span-2">
+                  <input id="f-address" autoComplete="address-line1" value={f.address} onChange={set("address")} className={inputCls(errors.address)} placeholder="House number or house name, street" />
                 </Field>
                 <Field label="Landmark (optional)" className="sm:col-span-2">
                   <input id="f-landmark" autoComplete="address-line2" value={f.landmark} onChange={set("landmark")} className={inputCls()} placeholder="Near the post office" />

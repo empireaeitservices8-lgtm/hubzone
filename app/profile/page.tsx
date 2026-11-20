@@ -281,7 +281,7 @@ export default function ProfilePage() {
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                       className={inputCls()}
-                      placeholder="House number, apartment, street name"
+                      placeholder="House number or house name, apartment, street"
                     />
                   </div>
 
