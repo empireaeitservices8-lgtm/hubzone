@@ -294,7 +294,7 @@ export default function CheckoutPage() {
       // 3. Create Razorpay order on backend
       const rzpOrder = await api.payment.createRazorpayOrder(total);
       if (!rzpOrder?.orderId) {
-        throw new Error("Failed to initialize Razorpay payment. Please try again.");
+        throw new Error("Failed to initialize payment. Please try again.");
       }
 
       // 4. Open Razorpay payment modal
@@ -439,7 +439,7 @@ export default function CheckoutPage() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 6 9 17l-5-5" />
                 </svg>
-                Payment Verified via Razorpay
+                Payment Verified
               </span>
               <h3 className="font-[family-name:var(--font-serif)] text-2xl font-medium text-[#2a231e]">
                 Paid: {inr(placedTotal || total)}
@@ -540,7 +540,7 @@ export default function CheckoutPage() {
                 <PayOption
                   checked={f.pay === "online"}
                   onSelect={() => setF((c) => ({ ...c, pay: "online" }))}
-                  title="Pay online (Razorpay)"
+                  title="Pay online"
                   text="UPI (Google Pay, PhonePe, Paytm), Credit/Debit Cards, Net Banking."
                   badge="Instant & Secure"
                 />
