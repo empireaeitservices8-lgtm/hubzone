@@ -32,6 +32,11 @@ type Order = {
   pin?: string;
   paymentMethod: string;
   orderStatus: "Placed" | "Shipped" | "Delivered" | "Cancelled";
+  shiprocketOrderId?: string;
+  shiprocketShipmentId?: string;
+  awbCode?: string;
+  courierName?: string;
+  trackingUrl?: string;
   subtotal: number;
   deliveryFee: number;
   totalAmount: number;
@@ -310,6 +315,31 @@ export default function MyOrdersPage() {
                         );
                       })}
                     </ul>
+
+                    {/* Live Courier Tracking Badge */}
+                    {order.awbCode && (
+                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-indigo-50/80 border border-indigo-200/70 p-3.5 text-xs text-indigo-950">
+                        <div className="flex items-center gap-2">
+                          <span className="text-base">🚚</span>
+                          <div>
+                            <p className="font-semibold text-[13px] text-indigo-950">
+                              Shipped via {order.courierName || "Shiprocket Express"}
+                            </p>
+                            <p className="text-indigo-700/80 mt-0.5">
+                              Tracking AWB: <span className="font-mono font-bold text-indigo-900">{order.awbCode}</span>
+                            </p>
+                          </div>
+                        </div>
+                        <a
+                          href={order.trackingUrl || `https://shiprocket.co/tracking/${order.awbCode}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 rounded-full bg-indigo-600 px-4 py-1.5 font-semibold text-white transition hover:bg-indigo-700 shadow-xs"
+                        >
+                          Track Package ↗
+                        </a>
+                      </div>
+                    )}
 
                     {/* Delivery & Action row */}
                     <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-[#2a231e]/10 pt-4 text-xs text-[#6a5c4f]">

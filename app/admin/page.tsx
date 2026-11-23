@@ -37,6 +37,11 @@ type OrderData = {
   pin?: string;
   paymentMethod: string;
   orderStatus: "Placed" | "Shipped" | "Delivered" | "Cancelled";
+  shiprocketOrderId?: string;
+  shiprocketShipmentId?: string;
+  awbCode?: string;
+  courierName?: string;
+  trackingUrl?: string;
   subtotal: number;
   deliveryFee: number;
   totalAmount: number;
@@ -295,6 +300,8 @@ export default function AdminPage() {
   };
 
   // --- Order actions ---
+  const [shippingActionId, setShippingActionId] = useState<string | number | null>(null);
+
   const handleUpdateOrderStatus = async (orderId: number | string, newStatus: string) => {
     try {
       await api.orders.updateStatusAdmin(orderId, newStatus);
@@ -302,6 +309,32 @@ export default function AdminPage() {
       await loadAll();
     } catch (err: any) {
       toast.error(err.message || "Failed to update order status.");
+    }
+  };
+
+  const handleCreateShipment = async (orderId: number | string) => {
+    try {
+      setShippingActionId(orderId);
+      const res = await api.shiprocket.createShipment(orderId);
+      flashMessage(res.message || "Order sent to Shiprocket!");
+      await loadAll();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create shipment in Shiprocket.");
+    } finally {
+      setShippingActionId(null);
+    }
+  };
+
+  const handleAssignAwb = async (orderId: number | string) => {
+    try {
+      setShippingActionId(orderId);
+      const res = await api.shiprocket.assignAwb(orderId);
+      flashMessage(res.message || "AWB generated successfully!");
+      await loadAll();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to assign AWB in Shiprocket.");
+    } finally {
+      setShippingActionId(null);
     }
   };
 
@@ -923,6 +956,73 @@ export default function AdminPage() {
                                   </button>
                                 )}
                               </div>
+                            </div>
+
+                            {/* Shiprocket Shipping Integration */}
+                            <div className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50/50 p-3.5 text-xs">
+                              <div className="flex items-center justify-between gap-2 mb-2">
+                                <span className="font-semibold text-indigo-950 flex items-center gap-1.5">
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <rect x="1" y="3" width="15" height="13" />
+                                    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+                                    <circle cx="5.5" cy="18.5" r="2.5" />
+                                    <circle cx="18.5" cy="18.5" r="2.5" />
+                                  </svg>
+                                  Shiprocket Logistics
+                                </span>
+                                {order.awbCode && (
+                                  <span className="rounded-full bg-emerald-100 text-emerald-800 px-2 py-0.5 font-bold uppercase text-[10px]">
+                                    AWB Generated
+                                  </span>
+                                )}
+                              </div>
+
+                              {order.awbCode ? (
+                                <div className="space-y-1 text-neutral-700">
+                                  <p><strong>Courier:</strong> {order.courierName || "Shiprocket Express"}</p>
+                                  <p><strong>AWB Code:</strong> <span className="font-mono font-bold text-neutral-900">{order.awbCode}</span></p>
+                                  <div className="pt-2 flex items-center gap-2">
+                                    <a
+                                      href={order.trackingUrl || `https://shiprocket.co/tracking/${order.awbCode}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 font-semibold text-[11px] transition shadow-xs"
+                                    >
+                                      Track on Shiprocket ↗
+                                    </a>
+                                  </div>
+                                </div>
+                              ) : order.shiprocketShipmentId ? (
+                                <div className="space-y-2">
+                                  <p className="text-neutral-600">Shipment ID: <span className="font-mono">{order.shiprocketShipmentId}</span></p>
+                                  <button
+                                    onClick={() => handleAssignAwb(order.id)}
+                                    disabled={shippingActionId === order.id}
+                                    className="rounded-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white px-3.5 py-1.5 font-semibold text-[11px] transition"
+                                  >
+                                    {shippingActionId === order.id ? "Assigning..." : "Assign Courier & Generate AWB"}
+                                  </button>
+                                </div>
+                              ) : order.orderStatus !== "Cancelled" ? (
+                                <div>
+                                  <p className="text-neutral-600 mb-2">Automated pickup & courier label generation.</p>
+                                  <button
+                                    onClick={() => handleCreateShipment(order.id)}
+                                    disabled={shippingActionId === order.id}
+                                    className="rounded-full bg-[#2a231e] hover:bg-[#3d322b] disabled:opacity-50 text-[#f6e9d0] px-3.5 py-1.5 font-semibold text-[11px] transition flex items-center gap-1.5"
+                                  >
+                                    {shippingActionId === order.id ? (
+                                      "Connecting to Shiprocket..."
+                                    ) : (
+                                      <>
+                                        <span>🚀</span> Ship via Shiprocket
+                                      </>
+                                    )}
+                                  </button>
+                                </div>
+                              ) : (
+                                <p className="text-neutral-400">Order cancelled</p>
+                              )}
                             </div>
                           </div>
                         </div>

@@ -234,5 +234,37 @@ export const api = {
         body: JSON.stringify(payload),
       }),
   },
+
+  // Shiprocket Shipping & Logistics
+  shiprocket: {
+    getConfig: () =>
+      request<{ success: boolean; configured: boolean; email: string | null; pickupLocation: string }>("/admin/shiprocket/config"),
+    createShipment: (orderId: number | string) =>
+      request<{ success: boolean; message: string; order: any; shiprocketResponse?: any }>(
+        `/admin/shiprocket/create-order/${orderId}`,
+        { method: "POST" }
+      ),
+    assignAwb: (orderId: number | string, courierId?: number) =>
+      request<{ success: boolean; message: string; order: any; awbResult?: any }>(
+        `/admin/shiprocket/assign-awb/${orderId}`,
+        {
+          method: "POST",
+          body: JSON.stringify({ courierId }),
+        }
+      ),
+    track: (awbOrOrderId: string) =>
+      request<{ success: boolean; order?: any; tracking: any; simulated?: boolean }>(
+        `/shiprocket/track/${encodeURIComponent(awbOrOrderId)}`
+      ),
+    checkServiceability: (pincode: string, weight = 0.5, cod = false) =>
+      request<{
+        success: boolean;
+        serviceable: boolean;
+        couriers?: any[];
+        recommendedCourier?: any;
+        availableCouriers?: any[];
+        message?: string;
+      }>(`/shiprocket/serviceability?pincode=${encodeURIComponent(pincode)}&weight=${weight}&cod=${cod}`),
+  },
 };
 

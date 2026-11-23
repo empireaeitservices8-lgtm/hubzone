@@ -276,84 +276,84 @@ export default function CheckoutPage() {
 
     // Online payment via Razorpay
     try {
-      // Check if standard Razorpay API keys are configured in backend
+      // 1. Check if standard Razorpay API keys are configured in backend
       const configRes = await api.payment.getConfig().catch(() => null);
 
-      if (configRes && configRes.configured && configRes.keyId) {
-        const loaded = await loadRazorpayScript();
-        if (loaded) {
-          const rzpOrder = await api.payment.createRazorpayOrder(total);
-          const options = {
-            key: rzpOrder.keyId || configRes.keyId,
-            amount: rzpOrder.amount,
-            currency: rzpOrder.currency || "INR",
-            name: "HubZone",
-            description: `Order payment for ${items.length} ${items.length === 1 ? "product" : "products"}`,
-            image: "/logo.png",
-            order_id: rzpOrder.orderId,
-            handler: async function (response: any) {
-              try {
-                setBusy(true);
-                const verifyRes = await api.payment.verifyRazorpayPayment({
-                  razorpay_order_id: response.razorpay_order_id,
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_signature: response.razorpay_signature,
-                  orderPayload,
-                });
-                const placedNum = verifyRes.order?.orderNumber || "HZ" + Date.now().toString().slice(-7);
-                setPlacedPayMethod("online");
-                setPlacedTotal(total);
-                setOrderId(placedNum);
-                toast.success(`Payment verified! Order #${placedNum} placed successfully.`);
-                clear();
-              } catch (verifyErr: any) {
-                toast.error(verifyErr.message || "Payment verification failed.");
-                setApiError(verifyErr.message || "Payment verification failed.");
-              } finally {
-                setBusy(false);
-              }
-            },
-            prefill: {
-              name: f.name,
-              email: f.email || (user ? user.email : ""),
-              contact: f.phone,
-            },
-            theme: { color: "#2a231e" },
-            modal: {
-              ondismiss: function () {
-                setBusy(false);
-              },
-            },
-          };
+      if (!configRes?.configured || !configRes?.keyId) {
+        throw new Error(
+          "Online payment gateway is not active yet (Razorpay API keys need to be added in backend). Please select 'Cash on delivery' or configure RAZORPAY_KEY_ID in backend."
+        );
+      }
 
-          const rzp = new (window as any).Razorpay(options);
-          rzp.on("payment.failed", function (response: any) {
+      // 2. Load Razorpay Checkout SDK
+      const loaded = await loadRazorpayScript();
+      if (!loaded) {
+        throw new Error("Unable to load Razorpay payment SDK. Please check your internet connection.");
+      }
+
+      // 3. Create Razorpay order on backend
+      const rzpOrder = await api.payment.createRazorpayOrder(total);
+      if (!rzpOrder?.orderId) {
+        throw new Error("Failed to initialize Razorpay payment. Please try again.");
+      }
+
+      // 4. Open Razorpay payment modal
+      const options = {
+        key: rzpOrder.keyId || configRes.keyId,
+        amount: rzpOrder.amount,
+        currency: rzpOrder.currency || "INR",
+        name: "HubZone",
+        description: `Order payment for ${items.length} ${items.length === 1 ? "product" : "products"}`,
+        image: "/logo.png",
+        order_id: rzpOrder.orderId,
+        handler: async function (response: any) {
+          try {
+            setBusy(true);
+            // 5. Place order ONLY AFTER payment is completed & verified cryptographically on the backend
+            const verifyRes = await api.payment.verifyRazorpayPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              orderPayload,
+            });
+            const placedNum = verifyRes.order?.orderNumber || "HZ" + Date.now().toString().slice(-7);
+            setPlacedPayMethod("online");
+            setPlacedTotal(total);
+            setOrderId(placedNum);
+            toast.success(`Payment verified! Order #${placedNum} placed successfully.`);
+            clear();
+          } catch (verifyErr: any) {
+            toast.error(verifyErr.message || "Payment verification failed. No order was placed.");
+            setApiError(verifyErr.message || "Payment verification failed. No order was placed.");
+          } finally {
             setBusy(false);
-            const errMsg = response.error?.description || "Payment failed. Please try again.";
-            toast.error(errMsg);
-            setApiError(errMsg);
-          });
-          rzp.open();
-          return;
-        }
-      }
+          }
+        },
+        prefill: {
+          name: f.name,
+          email: f.email || (user ? user.email : ""),
+          contact: f.phone,
+        },
+        theme: { color: "#2a231e" },
+        modal: {
+          ondismiss: function () {
+            setBusy(false);
+            toast.error("Payment cancelled. Your cart is preserved and no order was placed.");
+          },
+        },
+      };
 
-      // If API keys are not configured yet, register order and open your official Razorpay.me instant link!
-      const res = await api.orders.create(orderPayload);
-      const placedNum = res.order?.orderNumber || "HZ" + Date.now().toString().slice(-7);
-      setPlacedPayMethod("online");
-      setPlacedTotal(total);
-      setOrderId(placedNum);
-      toast.success(`Order #${placedNum} reserved! Opening Razorpay to complete payment...`);
-      clear();
-
-      if (typeof window !== "undefined") {
-        window.open(RAZORPAY_ME_URL, "_blank");
-      }
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on("payment.failed", function (response: any) {
+        setBusy(false);
+        const errMsg = response.error?.description || "Payment failed or declined. No order was placed.";
+        toast.error(errMsg);
+        setApiError(errMsg);
+      });
+      rzp.open();
     } catch (err: any) {
-      toast.error(err.message || "Failed to place order.");
-      setApiError(err.message || "Failed to place order. Please try again.");
-    } finally {
+      toast.error(err.message || "Failed to process payment.");
+      setApiError(err.message || "Failed to process payment. Please try again.");
       setBusy(false);
     }
   };
@@ -416,7 +416,7 @@ export default function CheckoutPage() {
       <ShopShell>
         <ShopTop bottom="pb-10 sm:pb-14">
           <h1 className="mb-2.5 font-[family-name:var(--font-serif)] text-[length:clamp(44px,8vw,92px)] font-medium leading-[1.02] tracking-[-0.01em]">
-            {isOnline ? "Order Reserved" : "Order Placed"}
+            {isOnline ? "Payment Successful" : "Order Placed"}
           </h1>
           <p className="text-base text-[#f6e9d0]/65">Order #{orderId}</p>
         </ShopTop>
@@ -428,37 +428,25 @@ export default function CheckoutPage() {
           </div>
           <h2 className="font-[family-name:var(--font-serif)] text-[length:clamp(30px,4vw,44px)] font-medium leading-[1.1]">Thank you, {f.name.split(" ")[0]}!</h2>
           <p className="mt-3 max-w-[480px] text-[#6a5c4f]">
-            We&apos;ve registered your order <strong>#{orderId}</strong>. We will deliver it to {f.city || "your address"}.
+            {isOnline
+              ? `Your payment has been verified and order #${orderId} is confirmed. We will deliver it to ${f.city || "your address"}.`
+              : `We've registered your order #${orderId}. We will deliver it to ${f.city || "your address"}.`}
           </p>
 
           {isOnline && (
-            <div className="mt-8 w-full max-w-lg rounded-3xl border border-[#2a231e]/15 bg-white p-6 sm:p-8 shadow-sm">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3.5 py-1 text-xs font-semibold text-emerald-800 border border-emerald-200 mb-3">
-                <span className="h-2 w-2 rounded-full bg-emerald-600 animate-pulse" />
-                Razorpay Payment Link Active
+            <div className="mt-8 w-full max-w-lg rounded-3xl border border-emerald-600/20 bg-emerald-50/50 p-6 sm:p-8 shadow-sm">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3.5 py-1 text-xs font-semibold text-emerald-800 border border-emerald-300 mb-3">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+                Payment Verified via Razorpay
               </span>
               <h3 className="font-[family-name:var(--font-serif)] text-2xl font-medium text-[#2a231e]">
-                Amount: {inr(placedTotal || total)}
+                Paid: {inr(placedTotal || total)}
               </h3>
               <p className="mt-2 text-sm text-[#6a5c4f]">
-                Complete your payment securely on our official Razorpay portal via <strong>Google Pay, PhonePe, Paytm, UPI, Cards, or Net Banking</strong>:
+                Your transaction has been verified successfully. Your order is confirmed and will be packed shortly.
               </p>
-              <div className="mt-6 flex flex-col gap-3">
-                <a
-                  href={RAZORPAY_ME_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex w-full items-center justify-center gap-2.5 rounded-full bg-[#0c2340] px-8 py-4 text-[15px] font-semibold text-white shadow-md transition duration-300 hover:bg-[#07172b] active:scale-[0.98]"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z" />
-                  </svg>
-                  Pay {inr(placedTotal || total)} on Razorpay ↗
-                </a>
-                <p className="text-xs text-neutral-400">
-                  Direct payment portal: {RAZORPAY_ME_URL}
-                </p>
-              </div>
             </div>
           )}
 
