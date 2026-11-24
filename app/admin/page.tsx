@@ -301,6 +301,26 @@ export default function AdminPage() {
 
   // --- Order actions ---
   const [shippingActionId, setShippingActionId] = useState<string | number | null>(null);
+  const [deletingOrderId, setDeletingOrderId] = useState<string | number | null>(null);
+
+  const handleDeleteOrder = async (orderId: number | string, orderNumber: string, customerName?: string) => {
+    const confirmed = window.confirm(
+      `⚠️ CONFIRM PERMANENT DELETION\n\nAre you sure you want to permanently delete Order #${orderNumber}${customerName ? ` for customer "${customerName}"` : ""}? \n\nThis will remove the order entirely from the database and cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    try {
+      setDeletingOrderId(orderId);
+      const res = await api.orders.deleteAdmin(orderId);
+      toast.success(res.message || `Order #${orderNumber} deleted successfully.`);
+      flashMessage(`Order #${orderNumber} permanently deleted from database.`);
+      await loadAll();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete order.");
+    } finally {
+      setDeletingOrderId(null);
+    }
+  };
 
   const handleUpdateOrderStatus = async (orderId: number | string, newStatus: string) => {
     try {
@@ -876,6 +896,16 @@ export default function AdminPage() {
                           <span className="font-[family-name:var(--font-serif)] text-2xl font-medium">
                             {inr(order.totalAmount)}
                           </span>
+                          <button
+                            onClick={() => handleDeleteOrder(order.id, order.orderNumber, order.username)}
+                            disabled={deletingOrderId === order.id}
+                            className="rounded-full p-2 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                            title="Delete order permanently from database"
+                          >
+                            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                            </svg>
+                          </button>
                         </div>
                       </div>
 
@@ -947,14 +977,17 @@ export default function AdminPage() {
                                     Mark as Delivered
                                   </button>
                                 )}
-                                {order.orderStatus !== "Cancelled" && order.orderStatus !== "Delivered" && (
-                                  <button
-                                    onClick={() => handleUpdateOrderStatus(order.id, "Cancelled")}
-                                    className="rounded-full border border-red-300 text-red-600 hover:bg-red-50 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider transition"
-                                  >
-                                    Cancel
-                                  </button>
-                                )}
+                                <button
+                                  onClick={() => handleDeleteOrder(order.id, order.orderNumber, order.username)}
+                                  disabled={deletingOrderId === order.id}
+                                  className="rounded-full border border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100 hover:border-rose-400 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider transition inline-flex items-center gap-1.5 disabled:opacity-50"
+                                  title="Permanently remove this order from database"
+                                >
+                                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                                  </svg>
+                                  {deletingOrderId === order.id ? "Deleting..." : "Delete Order"}
+                                </button>
                               </div>
                             </div>
 

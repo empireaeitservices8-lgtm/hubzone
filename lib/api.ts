@@ -184,6 +184,10 @@ export const api = {
         method: "PUT",
         body: JSON.stringify({ orderStatus: status }),
       }),
+    deleteAdmin: (id: string | number) =>
+      request<{ success: boolean; message: string }>(`/admin/orders/${id}`, {
+        method: "DELETE",
+      }),
   },
 
   // Reviews

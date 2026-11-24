@@ -31,6 +31,7 @@ type Order = {
   state?: string;
   pin?: string;
   paymentMethod: string;
+  paymentStatus?: string;
   orderStatus: "Placed" | "Shipped" | "Delivered" | "Cancelled";
   shiprocketOrderId?: string;
   shiprocketShipmentId?: string;
@@ -52,6 +53,7 @@ export default function MyOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [trackQuery, setTrackQuery] = useState("");
 
   const fetchOrders = async () => {
     try {
@@ -145,26 +147,70 @@ export default function MyOrdersPage() {
           <div className="rounded-2xl bg-red-50 p-6 text-center text-red-700 max-w-lg mx-auto border border-red-200">
             {error}
           </div>
-        ) : orders.length === 0 ? (
-          <div className="rounded-[28px] bg-white p-12 text-center shadow-[0_20px_50px_-30px_rgba(42,35,30,0.15)] max-w-lg mx-auto">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#fbf6ea] text-[#6a5c4f]">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-                <path d="M3 6h18" />
-                <path d="M16 10a4 4 0 0 1-8 0" />
-              </svg>
-            </div>
-            <h2 className="font-[family-name:var(--font-serif)] text-2xl font-medium">No orders yet</h2>
-            <p className="mt-2 text-sm text-[#6a5c4f]">You haven&apos;t placed any orders yet. Discover our fresh catalog today!</p>
-            <Link
-              href="/shop"
-              className="mt-6 inline-flex rounded-full bg-[#2a231e] px-8 py-3.5 text-sm font-medium text-[#f6e9d0] transition hover:bg-[#b8613a]"
-            >
-              Explore Products
-            </Link>
-          </div>
         ) : (
-          <div className="space-y-8">
+          <>
+            {/* Quick Shiprocket Tracking Search Box */}
+            <div className="mb-8 rounded-2xl bg-white p-4 sm:p-5 shadow-[0_20px_50px_-30px_rgba(42,35,30,0.1)] border border-[#2a231e]/10">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const q = trackQuery.trim();
+                  if (!q) {
+                    toast.error("Please enter an Order Number or Shiprocket AWB Code.");
+                    return;
+                  }
+                  const found = orders.find(
+                    (o) => o.orderNumber.toLowerCase() === q.toLowerCase() || String(o.id) === q
+                  );
+                  if (found?.awbCode) {
+                    window.open(found.trackingUrl || `https://shiprocket.co/tracking/${found.awbCode}`, "_blank");
+                  } else if (found) {
+                    toast.info(`Order #${found.orderNumber} is ${found.orderStatus}. Live Shiprocket tracking will activate once dispatched.`);
+                  } else {
+                    window.open(`https://shiprocket.co/tracking/${q}`, "_blank");
+                  }
+                }}
+                className="flex flex-col sm:flex-row items-center gap-3"
+              >
+                <div className="relative w-full flex-1">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400">📦</span>
+                  <input
+                    type="text"
+                    value={trackQuery}
+                    onChange={(e) => setTrackQuery(e.target.value)}
+                    placeholder="Enter Order Number (e.g. HZ74721060) or Shiprocket AWB..."
+                    className="w-full rounded-full border border-[#2a231e]/15 bg-[#fbf6ea]/40 py-3 pl-11 pr-4 text-sm text-[#2a231e] placeholder:text-neutral-400 focus:border-[#2a231e] focus:outline-none"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-[#2a231e] px-7 py-3 text-sm font-medium text-[#f6e9d0] transition hover:bg-[#b8613a] shrink-0"
+                >
+                  Track Package ↗
+                </button>
+              </form>
+            </div>
+
+            {orders.length === 0 ? (
+              <div className="rounded-[28px] bg-white p-12 text-center shadow-[0_20px_50px_-30px_rgba(42,35,30,0.15)] max-w-lg mx-auto">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#fbf6ea] text-[#6a5c4f]">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+                    <path d="M3 6h18" />
+                    <path d="M16 10a4 4 0 0 1-8 0" />
+                  </svg>
+                </div>
+                <h2 className="font-[family-name:var(--font-serif)] text-2xl font-medium">No orders yet</h2>
+                <p className="mt-2 text-sm text-[#6a5c4f]">You haven&apos;t placed any orders yet. Discover our fresh catalog today!</p>
+                <Link
+                  href="/shop"
+                  className="mt-6 inline-flex rounded-full bg-[#2a231e] px-8 py-3.5 text-sm font-medium text-[#f6e9d0] transition hover:bg-[#b8613a]"
+                >
+                  Explore Products
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-8">
             {orders.map((order) => {
               const dateStr = new Date(order.createdAt).toLocaleDateString("en-IN", {
                 day: "numeric",
@@ -349,7 +395,11 @@ export default function MyOrdersPage() {
                       </div>
 
                       <div className="flex items-center gap-2.5">
-                        {order.paymentMethod?.includes("Online") && order.orderStatus !== "Cancelled" && (
+                        {order.paymentStatus === "Paid" ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800 border border-emerald-200">
+                            ✓ Paid Online (Razorpay)
+                          </span>
+                        ) : order.paymentMethod?.includes("Online") && order.orderStatus !== "Cancelled" ? (
                           <a
                             href="https://razorpay.me/@hybriduniversalbusinesszone"
                             target="_blank"
@@ -358,7 +408,7 @@ export default function MyOrdersPage() {
                           >
                             Pay on Razorpay ↗
                           </a>
-                        )}
+                        ) : null}
                         {order.orderStatus === "Placed" && (
                           <button
                             onClick={() => handleCancel(order.id)}
@@ -375,6 +425,8 @@ export default function MyOrdersPage() {
               );
             })}
           </div>
+        )}
+          </>
         )}
       </main>
     </ShopShell>
